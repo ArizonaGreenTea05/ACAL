@@ -1,0 +1,12 @@
+{
+  "solution": {
+    "path": "CalendarView.slnx",
+    "projects": [
+      "CalendarView/CalendarView.Shared/CalendarView.Shared.csproj",
+	  "CalendarView/CalendarView.Web/CalendarView.Web.csproj",
+	  "Common.UI/Common.UI.csproj",
+	  "CalendarView.Core/CalendarView.Core.csproj",
+	  "CalendarView.Services/CalendarView.Services.csproj"
+    ]
+  }
+}

@@ -1,0 +1,93 @@
+﻿using System.Collections.ObjectModel;
+using System.Drawing;
+using CalendarView.Core.Models;
+using CalendarView.Services;
+using CommunityToolkit.Mvvm.ComponentModel;
+using Ical.Net.DataTypes;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using CalendarEvent = CalendarView.Core.Models.CalendarEvent;
+using IcalCalenderEvent = Ical.Net.CalendarComponents.CalendarEvent;
+
+namespace CalendarView.Core.ViewModels;
+
+public partial class CalendarViewModel(CalendarService calendarService, Calendars sourceCalendars, ILogger<CalendarViewModel> logger) : ObservableObject
+{
+    public event EventHandler? RefreshedCalendars;
+
+    private Timer? _refreshTimer;
+
+    [ObservableProperty] private bool _isLoading = true;
+    [ObservableProperty] private ObservableCollection<CalendarEvent> _events = [];
+    [ObservableProperty] private ObservableCollection<Calendar> _calendars = [];
+
+    public void StartRefreshTimer()
+    {
+        _refreshTimer?.Change(Timeout.Infinite, Timeout.Infinite);
+        _refreshTimer = new Timer(RefreshTimerCallback, null, TimeSpan.Zero, TimeSpan.FromMinutes(sourceCalendars.RefreshAfterMinutes));
+        logger.LogInformation("Refresh timer started");
+    }
+
+    private void RefreshTimerCallback(object? state)
+    {
+        logger.LogInformation("Refresh timer executing");
+        Task.Run(async () => await LoadCalendars());
+    }
+
+    private async Task LoadCalendars()
+    {
+        logger.LogInformation("Started calendar loading");
+        IsLoading = true;
+
+        Events.Clear();
+        Calendars.Clear();
+        logger.LogDebug("Cleared calendars and events");
+
+        foreach (var calendar in sourceCalendars.Definitions)
+        {
+            var currentCalendar = new Calendar
+            {
+                Color = calendar.Value.Color is null ? Color.Gray : ColorTranslator.FromHtml(calendar.Value.Color),
+                Name = calendar.Value.CustomName
+            };
+            Calendars.Add(currentCalendar);
+            logger.LogDebug("Added calendar: {json}", JsonConvert.SerializeObject(currentCalendar));
+
+            foreach (var item in await calendarService.LoadEventsFromIcsAsync(calendar.Key))
+            {
+                if (item.Start is null || item.End is null)
+                {
+                    logger.LogWarning("Start or end of event is null: {json}", JsonConvert.SerializeObject(item));
+                    continue;
+                }
+                var occurrences = item.GetOccurrences(new CalDateTime(DateTime.Now.Date.ToUniversalTime(), false)).ToList();
+                if (occurrences.Count > 1)
+                {
+                    foreach (var occurrence in occurrences)
+                    {
+                        AddEvent(item.Summary ?? string.Empty, occurrence.Period.StartTime.Value, occurrence.Period.EffectiveEndTime?.Value ?? occurrence.Period.StartTime.Value.AddHours(1), item.IsAllDay, currentCalendar);
+                    }
+                }
+                else if (item.End.Value.Date >= DateTime.Now.Date)
+                {
+                    AddEvent(item.Summary ?? string.Empty, item.Start.Value, item.End.Value, item.IsAllDay, currentCalendar);
+                }
+            }
+        }
+
+        IsLoading = false;
+        RefreshedCalendars?.Invoke(this, EventArgs.Empty);
+        logger.LogInformation("Finished calendar loading");
+    }
+
+    private void AddEvent(string eventName, DateTime start, DateTime end, bool isAllDay, Calendar currentCalendar)
+    {
+        CalendarEvent item = isAllDay
+            ? new AllDayCalendarEvent(currentCalendar, eventName, 
+                DateOnly.FromDateTime(start.Date),
+                DateOnly.FromDateTime(end.Date.Subtract(TimeSpan.FromHours(12))))
+            : new DefaultCalendarEvent(currentCalendar, eventName, start, end);
+        Events.Add(item);
+        logger.LogDebug("Added event: {json}", JsonConvert.SerializeObject(item));
+    }
+}
