@@ -4,6 +4,7 @@
 @using CalendarView.Core.Models
 @using CalendarView.Core.ViewModels
 @using CalendarView.Shared.Models
+@using CalendarView.Shared.Resources
 @using Common.UI.Extensions
 @using Microsoft.Extensions.Logging
 @using static CalendarView.Shared.Utils.CommonFunctions
@@ -70,6 +71,10 @@
 					var startDay = DateTime.Now.Date;
 					var endDay = events.Max(ev => ev.TotalStartTime.Date);
 					var lastMonth = startDay.ToLongMonthString(CurrentCulture);
+
+					var today = DateTime.Now.Date;
+					var yesterday = today.Subtract(TimeSpan.FromDays(1));
+					var tomorrow = today.AddDays(1);
 				}
 				@for (var day = startDay; day <= endDay; day = day.AddDays(1))
 				{
@@ -90,9 +95,15 @@
 
 					@if (todaysEvents.Count <= 0) continue;
 
+					string? currentDayName = null;
+					if (day == today) currentDayName = Translations.ResourceManager.GetString(nameof(Translations.Today), CurrentCulture);
+					else if (day == tomorrow) currentDayName = Translations.ResourceManager.GetString(nameof(Translations.Tomorrow), CurrentCulture);
+					else if (day == yesterday) currentDayName = Translations.ResourceManager.GetString(nameof(Translations.Yesterday), CurrentCulture);
+					currentDayName ??= day.ToLongDayString(CurrentCulture);
+
 					<div>
 						<a style="font-size: 40px; font-weight: 400;">@day.Day</a>
-						<a style="font-size: 30px; padding-left: 10px;">@day.ToLongDayString(CurrentCulture)</a>
+						<a style="font-size: 30px; padding-left: 10px;">@currentDayName</a>
 					</div>
 
 					@if (todaysEvents.Count <= 0)
