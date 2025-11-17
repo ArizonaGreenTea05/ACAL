@@ -34,6 +34,10 @@
 			grid-template-columns: 1fr;
 			grid-template-rows: @(Design.SwapPictureAndContentInPortrait ? "0fr 3fr 2fr 0fr" : "0fr 2fr 3fr 0fr");
 		}
+
+		.flow-grid-container {
+			grid-template-columns: auto auto;
+		}
 	}
 
 	@@media screen and (orientation: landscape) {
@@ -43,6 +47,10 @@
 				"@(Design.SwapPictureAndContentInLandscape ? "content menu" : "menu content")"
 				"footer footer";
 			grid-template-columns: @(Design.SwapPictureAndContentInLandscape ? "3fr 2fr" : "2fr 3fr");
+		}
+
+		.flow-grid-container {
+			grid-template-columns: auto auto auto;
 		}
 	}
 
