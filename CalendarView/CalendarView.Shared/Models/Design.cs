@@ -19,6 +19,7 @@ public partial class Design : ObservableObject
     [ObservableProperty] private bool _showDate = true;
     [ObservableProperty] private bool _showTime = true;
     [ObservableProperty] private bool _showColorLegend = true;
+    [ObservableProperty] private bool _showScrollBar = true;
 
     [ObservableProperty] private PageLayout _pageLayout;
 }
