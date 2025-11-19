@@ -1,0 +1,277 @@
+﻿@page "/calendar-with-image"
+@using System.Globalization
+@using System.Timers
+@using CalendarView.Core.Models
+@using CalendarView.Core.ViewModels
+@using CalendarView.Shared.Models
+@using CalendarView.Shared.Resources
+@using Common.UI.Extensions
+@using Microsoft.Extensions.Logging
+@using static CalendarView.Shared.Utils.CommonFunctions
+@inject CalendarViewModel CalendarViewModel
+@inject Design Design
+@inject ILogger<CalendarWithImage> Logger
+
+<PageTitle>Calendar</PageTitle>
+
+<style>
+	.background-image {
+		background-image:
+		@(Design.CustomBackgroundImageOverlay ?? "radial-gradient(circle at center, rgba(0, 0, 0, 0.2) 40%, rgba(0, 0, 0, 0.8) 100%)"), url('@CurrentPictureUrl');
+		background-blend-mode: multiply;
+		background-repeat: no-repeat;
+		background-position: center;
+		background-size: cover;
+	}
+
+	@@media screen and (orientation: portrait) {
+		.grid-container-overwrite {
+			grid-template-areas:
+				"header"
+				"@(Design.SwapPictureAndContentInPortrait ? "content" : "menu")"
+				"@(Design.SwapPictureAndContentInPortrait ? "menu" : "content")"
+				"footer";
+			grid-template-columns: 1fr;
+			grid-template-rows: @(Design.SwapPictureAndContentInPortrait ? "0fr 2fr 1fr 0fr" : "0fr 1fr 2fr 0fr");
+		}
+
+		.flow-grid-container {
+			grid-template-columns: auto auto;
+		}
+	}
+
+	@@media screen and (orientation: landscape) {
+		.grid-container-overwrite {
+			grid-template-areas:
+				"header header"
+				"@(Design.SwapPictureAndContentInLandscape ? "content menu" : "menu content")"
+				"footer footer";
+			grid-template-columns: @(Design.SwapPictureAndContentInLandscape ? "2fr 1fr" : "1fr 2fr");
+		}
+
+		.flow-grid-container {
+			grid-template-columns: auto auto auto;
+		}
+	}
+
+	.grid-container-overwrite div.content-overwrite {
+		grid-area: content;
+		overflow-y: scroll;
+		overflow-x: hidden;
+		height: 100%;
+		padding: 10px;
+		margin: 0px;
+	}
+</style>
+
+<div class="grid-container grid-container-overwrite" style="margin: 0px; padding: 0px; height: 100vh; width: 100%;">
+	<div class="menu background-image" style="padding: 0px 20px 15px 0px; display: flex; flex-direction: column; height: 100%;">
+		<div>
+			@if (Design.ShowTime)
+			{
+				<div style="width: fit-content; margin: 0px 0px 0px auto; padding: 0px;">
+					<a style="font-size: 80px">@_currentTimeString</a>
+				</div>
+			}
+			@if (Design.ShowDate)
+			{
+				<div style="width: fit-content; margin: 0px 0px 0px auto; padding: 0px;">
+					<a style="font-size: 19px">@_currentDateString</a>
+				</div>
+			}
+		</div>
+		<div style="flex: 1;">
+		</div>
+		@if (Design.ShowColorLegend)
+		{
+			<div style="align-content: end;">
+				<div style="width: fit-content; margin-left: auto; margin-right: 0px;">
+					@if (CalendarViewModel.IsLoading)
+					{
+						<p>Loading calendars...</p>
+					}
+					else
+					{
+						foreach (var calendar in GetCalendarsOrderedByColor(CalendarViewModel.Calendars, Design.EventCardDimmingRatio))
+						{
+
+							<div class="event-card" style="background-color: @calendar.dimBackColor.ToHex(); border-left-color: @calendar.backColor.ToHex(); color: @calendar.foreColor.ToHex(); margin: 3px; padding: 0px 5px; border-radius: 5px; border-left-width: 3px">
+								@calendar.calendar.Name
+							</div>
+							Logger.LogDebug("Added calendar '{name} with color {backColor}", calendar.calendar.Name, calendar.backColor.ToHex());
+						}
+					}
+				</div>
+			</div>
+		}
+	</div>
+	<div class="content content-overwrite">
+		@if (CalendarViewModel.IsLoading)
+		{
+			<p>Loading calendars...</p>
+		}
+		else
+		{
+			<div class="flow-grid-container">
+				@{
+					var events = CalendarViewModel.Events.OrderBy(e => e.TotalStartTime).ToList();
+					var startDay = DateTime.Now.Date;
+					var endDay = events.Max(ev => ev.TotalStartTime.Date);
+
+					var today = DateTime.Now.Date;
+					var yesterday = today.Subtract(TimeSpan.FromDays(1));
+					var tomorrow = today.AddDays(1);
+				}
+				@for (var day = startDay; day <= endDay; day = day.AddDays(1))
+				{
+					var todaysEvents = events.Where(ev => IsEventAtDay(ev, day)).ToList();
+					var allDayEvents = todaysEvents.OfType<AllDayCalendarEvent>().ToList();
+					var normalDayEvents = todaysEvents.OfType<DefaultCalendarEvent>().OrderBy(ev => ev.Start).ToList();
+
+					<div>
+						@{
+							string? currentDayName = null;
+							if (day == today) currentDayName = Translations.ResourceManager.GetString(nameof(Translations.Today), CurrentCulture);
+							else if (day == tomorrow) currentDayName = Translations.ResourceManager.GetString(nameof(Translations.Tomorrow), CurrentCulture);
+							else if (day == yesterday) currentDayName = Translations.ResourceManager.GetString(nameof(Translations.Yesterday), CurrentCulture);
+							currentDayName ??= day.ToLongDayString(CurrentCulture);
+						}
+
+						<div>
+							<a style="font-size: 40px; font-weight: 400;">@day.Day</a>
+							<a style="font-size: 30px; padding-left: 10px;">@currentDayName</a>
+						</div>
+
+						@if (todaysEvents.Count <= 0)
+						{
+							<div>
+								<a colspan="4">no events</a>
+							</div>
+						}
+
+						@if (allDayEvents.Count > 0)
+						{
+							<div style="margin: 5px;">
+								@foreach (var ev in allDayEvents.OrderBy(ev => ev.Start))
+								{
+									var backColor = ev.Calendar.Color;
+									var dimBackColor = backColor.GetDimColor(Design.EventCardDimmingRatio);
+									var foreColor = dimBackColor.GetForeColor();
+									var dimForeColor = foreColor.GetDimColor(0.9);
+
+									<div class="event-card" style="background-color: @dimBackColor.ToHex(); border-left-color: @backColor.ToHex(); margin-bottom: 10px;">
+										<div class="grid-container" style="grid-template-columns: 100px 100%; padding: 2px; margin: 5px; border-radius: 10px;">
+											<div class="menu" style="text-align: left;">
+												<a style="color: @dimForeColor.ToHex(); font-size: 19px; font-weight: 600;">All day</a>
+											</div>
+											<div class="content" style="text-align: left;">
+												<a style="text-align: left; color: @foreColor.ToHex(); font-size: 19px; font-weight: 600;">@ev.Name</a>
+												<br>
+												<a style="text-align: left; color: @dimForeColor.ToHex()">
+													@ev.Start.ToShortShortDateString(CurrentCulture) @(ev.Start == ev.End ? "" : $"- {ev.End.ToShortShortDateString(CurrentCulture)}")
+												</a>
+											</div>
+										</div>
+									</div>
+
+									Logger.LogDebug("Added all day event '{name}' of calendar '{calendar}' with color {backColor}", ev.Name, ev.Calendar.Name, backColor.ToHex());
+								}
+							</div>
+						}
+
+						@if(normalDayEvents.Count > 0)
+						{
+							<div style="margin: 5px;">
+								@foreach (var ev in normalDayEvents.OrderBy(ev => ev.Start))
+								{
+									var backColor = ev.Calendar.Color;
+									var dimBackColor = backColor.GetDimColor(Design.EventCardDimmingRatio);
+									var foreColor = dimBackColor.GetForeColor();
+									var dimForeColor = foreColor.GetDimColor(0.9);
+
+									<div class="event-card" style="background-color: @dimBackColor.ToHex(); border-left-color: @backColor.ToHex(); margin-bottom: 10px;">
+										<div class="grid-container" style="grid-template-columns: 100px 100%; padding: 2px; margin: 5px; border-radius: 10px;">
+											<div class="menu" style="text-align: left;">
+												<a style="color: @dimForeColor.ToHex(); font-size: 19px; font-weight: 600;">
+													@ev.Start.ToShortTimeString(CurrentCulture)
+												</a>
+												<br />
+												<a style="color: @dimForeColor.ToHex();">
+													@ev.End.ToShortTimeString(CurrentCulture)
+												</a>
+											</div>
+											<div class="content" style="text-align: left;">
+												<a style="text-align: left; color: @foreColor.ToHex(); font-size: 19px; font-weight: 600;">@ev.Name</a>
+												<br>
+												<a style="text-align: left; color: @dimForeColor.ToHex();">
+													@ev.Start.Date.ToShortShortDateString(CurrentCulture) @(ev.Start.Date == ev.End.Date ? "" : $"- {ev.End.Date.ToShortShortDateString(CurrentCulture)}")
+												</a>
+											</div>
+										</div>
+									</div>
+
+									Logger.LogDebug("Added event '{name}' of calendar '{calendar}' with color {backColor}", ev.Name, ev.Calendar.Name, backColor.ToHex());
+								}
+							</div>
+						}
+					
+					</div>
+				}
+			</div>
+		}
+	</div>
+</div>
+
+
+@code {
+	private Timer? _timeTimer;
+	private Timer? _pictureTimer;
+	private string _currentTimeString = DateTime.Now.ToShortTimeString();
+	private string _currentDateString = DateTime.Now.ToLongDateString();
+	private int _currentPictureIndex;
+	private readonly List<string> _imageBase64s = [];
+	private CultureInfo CurrentCulture => new(Design.Language);
+
+	private string CurrentPictureUrl => _imageBase64s.Count <= _currentPictureIndex ? string.Empty : $"data:image/jpeg;base64,{_imageBase64s[_currentPictureIndex]}";
+
+	protected override async Task OnInitializedAsync()
+	{
+		Logger.LogInformation("Started initialization");
+		if (_timeTimer is null)
+		{
+			_timeTimer = new Timer(TimeSpan.FromSeconds(10));
+			_timeTimer.Elapsed += async (_, _) =>
+			{
+				var currentTimeString = DateTime.Now.ToShortTimeString(CurrentCulture);
+				if (currentTimeString == _currentTimeString) return;
+				_currentTimeString = currentTimeString;
+				_currentDateString = DateTime.Now.ToLongDateString(CurrentCulture);
+				await InvokeAsync(StateHasChanged);
+				Logger.LogDebug("Time updated");
+			};
+
+			Logger.LogInformation("Initialized time timer");
+		}
+
+		CalendarViewModel.RefreshedCalendars += async (_, _) => await InvokeAsync(StateHasChanged);
+
+		_timeTimer.Start();
+		CalendarViewModel.StartRefreshTimer();
+		LoadPictures(Logger, Design.PictureDirectory, _imageBase64s);
+
+		if (_pictureTimer is null)
+		{
+			_pictureTimer = new Timer(TimeSpan.FromMinutes(Design.ChangePictureAfterMinutes));
+			_pictureTimer.Elapsed += async (_, _) =>
+			{
+				_currentPictureIndex = (_currentPictureIndex + 1) % _imageBase64s.Count;
+				await InvokeAsync(StateHasChanged);
+				Logger.LogDebug("Picture updated");
+			};
+			Logger.LogInformation("Initialized picture timer");
+		}
+		_pictureTimer.Start();
+		await InvokeAsync(StateHasChanged);
+		Logger.LogInformation("Finished initialization");
+	}
+}

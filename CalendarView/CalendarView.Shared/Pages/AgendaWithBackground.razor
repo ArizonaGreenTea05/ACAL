@@ -1,4 +1,4 @@
-﻿@page "/agenda"
+﻿@page "/agenda-with-background"
 @using System.Globalization
 @using System.Timers
 @using CalendarView.Core.Models
@@ -10,11 +10,22 @@
 @using static CalendarView.Shared.Utils.CommonFunctions
 @inject CalendarViewModel CalendarViewModel
 @inject Design Design
-@inject ILogger<Agenda> Logger
+@inject ILogger<AgendaWithBackground> Logger
 
 <PageTitle>Calendar</PageTitle>
 
-<div class="grid-container" style="margin: 0px; padding: 0px; height: 100vh; width: 100%; grid-template-columns: 0fr 1fr">
+<style>
+	.background-image {
+		background-image:
+		@(Design.CustomBackgroundImageOverlay ?? "radial-gradient(circle at center, rgba(0, 0, 0, 0.7) 40%, rgba(0, 0, 0, 0.8) 100%)"), url('@CurrentPictureUrl');
+		background-blend-mode: multiply;
+		background-repeat: no-repeat;
+		background-position: center;
+		background-size: cover;
+	}
+</style>
+
+<div class="grid-container background-image" style="margin: 0px; padding: 0px; height: 100vh; width: 100%; grid-template-columns: 0fr 1fr">
 	<div class="header" style="display: flex; flex-direction: row;">
 		<div>
 			@if (Design.ShowTime)
@@ -31,7 +42,7 @@
 			}
 		</div>
 	</div>
-	
+
 	<div class="footer">
 		<div>
 			@if (Design.ShowColorLegend)
@@ -187,9 +198,14 @@
 
 @code {
 	private Timer? _timeTimer;
+	private Timer? _pictureTimer;
 	private string _currentTimeString = DateTime.Now.ToShortTimeString();
 	private string _currentDateString = DateTime.Now.ToLongDateString();
+	private int _currentPictureIndex;
+	private readonly List<string> _imageBase64s = [];
 	private CultureInfo CurrentCulture => new(Design.Language);
+
+	private string CurrentPictureUrl => _imageBase64s.Count <= _currentPictureIndex ? string.Empty : $"data:image/jpeg;base64,{_imageBase64s[_currentPictureIndex]}";
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -214,6 +230,20 @@
 
 		_timeTimer.Start();
 		CalendarViewModel.StartRefreshTimer();
+		LoadPictures(Logger, Design.PictureDirectory, _imageBase64s);
+
+		if (_pictureTimer is null)
+		{
+			_pictureTimer = new Timer(TimeSpan.FromMinutes(Design.ChangePictureAfterMinutes));
+			_pictureTimer.Elapsed += async (_, _) =>
+			{
+				_currentPictureIndex = (_currentPictureIndex + 1) % _imageBase64s.Count;
+				await InvokeAsync(StateHasChanged);
+				Logger.LogDebug("Picture updated");
+			};
+			Logger.LogInformation("Initialized picture timer");
+		}
+		_pictureTimer.Start();
 		await InvokeAsync(StateHasChanged);
 		Logger.LogInformation("Finished initialization");
 	}

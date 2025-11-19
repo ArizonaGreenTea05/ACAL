@@ -13,8 +13,11 @@
 		base.OnAfterRender(firstRender);
 		var destUrl = Design.PageLayout switch
 		{
-			Enums.PageLayout.Agenda=> "/agenda",
+			Enums.PageLayout.Agenda => "/agenda",
 			Enums.PageLayout.AgendaWithImage => "/agenda-with-image",
+			Enums.PageLayout.AgendaWithBackground => "/agenda-with-background",
+			Enums.PageLayout.CalendarWithImage => "/calendar-with-image",
+			Enums.PageLayout.CalendarWithBackground => "/calendar-with-background",
 			_ => "/not-found"
 		} ;
 		Logger.LogInformation("Navigating to '{url}'", destUrl);

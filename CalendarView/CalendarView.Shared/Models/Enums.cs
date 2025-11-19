@@ -5,6 +5,9 @@ public static class Enums
     public enum PageLayout
     {
         Agenda,
-        AgendaWithImage
+        AgendaWithImage,
+        AgendaWithBackground,
+        CalendarWithImage,
+        CalendarWithBackground
     }
 }
