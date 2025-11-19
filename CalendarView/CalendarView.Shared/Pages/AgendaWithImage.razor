@@ -38,6 +38,10 @@
 		.flow-grid-container {
 			grid-template-columns: auto auto;
 		}
+
+		.menu-overwrite {
+			height: 100%;
+		}
 	}
 
 	@@media screen and (orientation: landscape) {
@@ -52,6 +56,10 @@
 		.flow-grid-container {
 			grid-template-columns: auto auto auto;
 		}
+
+		.menu-overwrite {
+			height: 100vh;
+		}
 	}
 
 	.grid-container-overwrite div.content-overwrite {
@@ -65,7 +73,7 @@
 </style>
 
 <div class="grid-container grid-container-overwrite" style="margin: 0px; padding: 0px; height: 100vh; width: 100%;">
-	<div class="menu background-image" style="padding: 0px 20px 15px 0px; display: flex; flex-direction: column; height: 100%;">
+	<div class="menu background-image menu-overwrite" style="padding: 0px 20px 15px 0px; display: flex; flex-direction: column;">
 		<div>
 			@if (Design.ShowTime)
 			{
