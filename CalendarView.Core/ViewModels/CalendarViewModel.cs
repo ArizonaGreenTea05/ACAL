@@ -50,7 +50,10 @@ public partial class CalendarViewModel(CalendarService calendarService, Calendar
                 Color = calendar.Value.Color is null ? Color.Gray : ColorTranslator.FromHtml(calendar.Value.Color),
                 Name = calendar.Value.CustomName
             };
-            Calendars.Add(currentCalendar);
+
+            var fodCal = Calendars.FirstOrDefault(c => c == currentCalendar);
+            if (fodCal is null) Calendars.Add(currentCalendar);
+            else currentCalendar = fodCal;
             logger.LogDebug("Added calendar: {json}", JsonConvert.SerializeObject(currentCalendar));
 
             foreach (var item in await calendarService.LoadEventsFromIcsAsync(calendar.Key))
