@@ -115,8 +115,8 @@
 			<div>
 				@{
 					var events = CalendarViewModel.Events.OrderBy(e => e.TotalStartTime).ToList();
-					var startDay = DateTime.Now.Date;
-					var endDay = events.Max(ev => ev.TotalStartTime.Date);
+					var startDay = DateTime.Today;
+					var endDay = events.Any() ? events.Max(ev => ev.TotalStartTime.Date) : DateTime.Today;
 					var lastMonth = startDay.ToLongMonthString(CurrentCulture);
 
 					var today = DateTime.Now.Date;
