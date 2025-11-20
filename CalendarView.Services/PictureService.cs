@@ -14,6 +14,7 @@ public class PictureService
     private int _currentPictureIndex = 0;
     private readonly FileSystemWatcher? _fileSystemWatcher;
     private bool _filesChanged = true;
+    private DateOnly? _lastReloadDate;
 
     public string? CurrentPictureBase64 => _currentPictureIndex >= _pictureBase64s.Count ? null : _pictureBase64s[_currentPictureIndex];
 
@@ -74,7 +75,8 @@ public class PictureService
     private bool LoadPicturesIfChanged()
     {
         _logger.LogInformation("Started loading pictures");
-        if (!_filesChanged)
+        var today = DateOnly.FromDateTime(DateTime.Now);
+        if (!_filesChanged && _lastReloadDate == today)
         {
             _logger.LogInformation("No changes found. Abort loading");
             return false;
@@ -105,6 +107,7 @@ public class PictureService
         _pictureBase64s.AddRange(tempBase64s.OrderBy(_ => random.Next()));
 
         _filesChanged = false;
+        _lastReloadDate = today;
         _logger.LogInformation("Finished loading pictures");
         return true;
     }

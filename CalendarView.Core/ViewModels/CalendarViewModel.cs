@@ -23,7 +23,11 @@ public partial class CalendarViewModel(CalendarService calendarService, Calendar
 
     public void StartRefreshTimer()
     {
-        _refreshTimer?.Change(Timeout.Infinite, Timeout.Infinite);
+        if (_refreshTimer is not null)
+        {
+            logger.LogInformation("Refresh timer already running");
+            return;
+        }
         _refreshTimer = new Timer(RefreshTimerCallback, null, TimeSpan.Zero, TimeSpan.FromMinutes(sourceCalendars.RefreshAfterMinutes));
         logger.LogInformation("Refresh timer started");
     }

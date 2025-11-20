@@ -1,7 +1,6 @@
 ﻿using CalendarView.Core.Models;
 using CalendarView.Shared.Resources;
 using Common.UI.Extensions;
-using Microsoft.Extensions.Logging;
 using System.Drawing;
 using System.Globalization;
 using Calendar = CalendarView.Core.Models.Calendar;
@@ -14,7 +13,7 @@ public static class CommonFunctions
     {
         events = [.. unorderedEvents.OrderBy(e => e.TotalStartTime)];
         startDay = DateTime.Now.Date;
-        endDay = events.Max(ev => ev.TotalStartTime.Date);
+        endDay = events.Count <= 0 ? startDay : events.Max(ev => ev.TotalStartTime.Date);
 
         today = DateTime.Now.Date;
         yesterday = today.Subtract(TimeSpan.FromDays(1));
