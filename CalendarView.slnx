@@ -11,4 +11,5 @@
   </Folder>
   <Project Path="CalendarView.Core/CalendarView.Core.csproj" />
   <Project Path="CalendarView.Services/CalendarView.Services.csproj" />
+  <Project Path="Common/Common.csproj" Id="4aba50c8-03f1-4cb1-a8fa-b45558d88520" />
 </Solution>

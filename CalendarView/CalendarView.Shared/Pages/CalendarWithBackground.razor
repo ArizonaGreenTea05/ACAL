@@ -1,16 +1,16 @@
 ﻿@page "/calendar-with-background"
 @using System.Globalization
 @using System.Timers
-@using CalendarView.Core.Models
 @using CalendarView.Core.ViewModels
+@using CalendarView.Services
 @using CalendarView.Shared.Models
-@using CalendarView.Shared.Resources
 @using Common.UI.Extensions
 @using Microsoft.Extensions.Logging
 @using static CalendarView.Shared.Utils.CommonFunctions
 @inject CalendarViewModel CalendarViewModel
 @inject Design Design
 @inject ILogger<CalendarWithBackground> Logger
+@inject PictureService PictureService
 
 <PageTitle>Calendar</PageTitle>
 
@@ -78,29 +78,13 @@
 		{
 			<div class="flow-grid-container" style="grid-template-columns: auto auto auto auto;">
 				@{
-					var events = CalendarViewModel.Events.OrderBy(e => e.TotalStartTime).ToList();
-					var startDay = DateTime.Now.Date;
-					var endDay = events.Max(ev => ev.TotalStartTime.Date);
-
-					var today = DateTime.Now.Date;
-					var yesterday = today.Subtract(TimeSpan.FromDays(1));
-					var tomorrow = today.AddDays(1);
+					InitCalendarParams(CalendarViewModel.Events, out var events, out var startDay, out var endDay, out var today, out var yesterday, out var tomorrow);
 				}
 				@for (var day = startDay; day <= endDay; day = day.AddDays(1))
 				{
-					var todaysEvents = events.Where(ev => IsEventAtDay(ev, day)).ToList();
-					var allDayEvents = todaysEvents.OfType<AllDayCalendarEvent>().ToList();
-					var normalDayEvents = todaysEvents.OfType<DefaultCalendarEvent>().OrderBy(ev => ev.Start).ToList();
+					InitCalendarParamsForDay(events, day, today, tomorrow, yesterday, CurrentCulture, out var todaysEvents, out var allDayEvents, out var normalDayEvents, out var currentDayName);
 
 					<div>
-						@{
-							string? currentDayName = null;
-							if (day == today) currentDayName = Translations.ResourceManager.GetString(nameof(Translations.Today), CurrentCulture);
-							else if (day == tomorrow) currentDayName = Translations.ResourceManager.GetString(nameof(Translations.Tomorrow), CurrentCulture);
-							else if (day == yesterday) currentDayName = Translations.ResourceManager.GetString(nameof(Translations.Yesterday), CurrentCulture);
-							currentDayName ??= day.ToLongDayString(CurrentCulture);
-						}
-
 						<div>
 							<a style="font-size: 40px; font-weight: 400;">@day.Day</a>
 							<a style="font-size: 30px; padding-left: 10px;">@currentDayName</a>
@@ -189,14 +173,11 @@
 
 @code {
 	private Timer? _timeTimer;
-	private Timer? _pictureTimer;
 	private string _currentTimeString = DateTime.Now.ToShortTimeString();
 	private string _currentDateString = DateTime.Now.ToLongDateString();
-	private int _currentPictureIndex;
-	private readonly List<string> _imageBase64s = [];
 	private CultureInfo CurrentCulture => new(Design.Language);
 
-	private string CurrentPictureUrl => _imageBase64s.Count <= _currentPictureIndex ? string.Empty : $"data:image/jpeg;base64,{_imageBase64s[_currentPictureIndex]}";
+	private string CurrentPictureUrl => PictureService.CurrentPictureBase64 is null ? string.Empty : $"data:image/jpeg;base64,{PictureService.CurrentPictureBase64}";
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -218,23 +199,10 @@
 		}
 
 		CalendarViewModel.RefreshedCalendars += async (_, _) => await InvokeAsync(StateHasChanged);
+		PictureService.PictureHasChanged += async (_, _) => await InvokeAsync(StateHasChanged);
 
 		_timeTimer.Start();
 		CalendarViewModel.StartRefreshTimer();
-		LoadPictures(Logger, Design.PictureDirectory, _imageBase64s);
-
-		if (_pictureTimer is null)
-		{
-			_pictureTimer = new Timer(TimeSpan.FromMinutes(Design.ChangePictureAfterMinutes));
-			_pictureTimer.Elapsed += async (_, _) =>
-			{
-				_currentPictureIndex = (_currentPictureIndex + 1) % _imageBase64s.Count;
-				await InvokeAsync(StateHasChanged);
-				Logger.LogDebug("Picture updated");
-			};
-			Logger.LogInformation("Initialized picture timer");
-		}
-		_pictureTimer.Start();
 		await InvokeAsync(StateHasChanged);
 		Logger.LogInformation("Finished initialization");
 	}

@@ -17,7 +17,7 @@ public partial class CalendarViewModel(CalendarService calendarService, Calendar
 
     private Timer? _refreshTimer;
 
-    [ObservableProperty] private bool _isLoading = true;
+    [ObservableProperty] private bool _isLoading;
     [ObservableProperty] private ObservableCollection<CalendarEvent> _events = [];
     [ObservableProperty] private ObservableCollection<Calendar> _calendars = [];
 
@@ -37,6 +37,11 @@ public partial class CalendarViewModel(CalendarService calendarService, Calendar
     private async Task LoadCalendars()
     {
         logger.LogInformation("Started calendar loading");
+        if (IsLoading)
+        {
+            logger.LogInformation("Calendars are already loading");
+            return;
+        }
         IsLoading = true;
 
         Events.Clear();

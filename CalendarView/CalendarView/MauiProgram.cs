@@ -1,6 +1,4 @@
 ﻿using CalendarView.Services;
-using CalendarView.Shared.Models;
-using CalendarView.Shared.Services;
 using Microsoft.Extensions.Logging;
 using static CalendarView.Shared.Utils.Initialization;
 
@@ -19,10 +17,8 @@ namespace CalendarView
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 });
 
-            builder.Services.RegisterServices(calendars, design);
+            builder.Services.RegisterServices<FormFactor>(calendars, design);
             builder.Services.RegisterLogging(loggingConfig);
-
-            builder.Services.AddSingleton<IFormFactor, FormFactor>();
 
             builder.Services.AddMauiBlazorWebView();
 

@@ -2,6 +2,7 @@
 using CalendarView.Core.ViewModels;
 using CalendarView.Services;
 using CalendarView.Shared.Models;
+using CalendarView.Shared.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -15,8 +16,7 @@ namespace CalendarView.Shared.Utils
         public static void LoadAppsettings(out Calendars calendars, out Design design, out LoggingConfig loggingConfig)
         {
             var appsettingsPaths = new[] { "../config/appsettings.json", "appsettings.json" };
-            var path = appsettingsPaths.FirstOrDefault(File.Exists);
-            if (path is null) throw new FileNotFoundException("appsettings not found");
+            var path = appsettingsPaths.FirstOrDefault(File.Exists) ?? throw new FileNotFoundException("appsettings not found");
             var appsettingsStream = File.OpenRead(path);
             var appsettingsBuilder = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
@@ -33,12 +33,16 @@ namespace CalendarView.Shared.Utils
             appsettings.GetSection(nameof(LoggingConfig)).Bind(loggingConfig);
         }
 
-        public static void RegisterServices(this IServiceCollection serviceCollection, Calendars calendars, Design design)
+        public static void RegisterServices<TFormFactor>(this IServiceCollection serviceCollection, Calendars calendars, Design design) where TFormFactor : class, IFormFactor
         {
+            serviceCollection.AddSingleton<IFormFactor, TFormFactor>();
             serviceCollection.AddSingleton(calendars);
             serviceCollection.AddSingleton(design);
+            serviceCollection.AddKeyedSingleton("PictureRefreshInterval", new Common.TimeSpan(TimeSpan.FromMinutes(design.ChangePictureAfterMinutes)));
+            serviceCollection.AddKeyedSingleton("PictureDirectory", design.PictureDirectory ?? string.Empty);
+            serviceCollection.AddSingleton<PictureService>();
             serviceCollection.AddHttpClient<CalendarService>();
-            serviceCollection.AddTransient<CalendarViewModel>();
+            serviceCollection.AddSingleton<CalendarViewModel>();
         }
 
         public static void RegisterLogging(this IServiceCollection serviceCollection, LoggingConfig loggingConfig)

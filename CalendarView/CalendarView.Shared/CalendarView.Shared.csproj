@@ -29,6 +29,7 @@
     <ProjectReference Include="..\..\CalendarView.Core\CalendarView.Core.csproj" />
     <ProjectReference Include="..\..\CalendarView.Services\CalendarView.Services.csproj" />
     <ProjectReference Include="..\..\Common.UI\Common.UI.csproj" />
+    <ProjectReference Include="..\..\Common\Common.csproj" />
   </ItemGroup>
 
   <ItemGroup>
