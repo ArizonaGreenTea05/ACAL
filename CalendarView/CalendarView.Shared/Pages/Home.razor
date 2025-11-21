@@ -15,9 +15,10 @@
 		{
 			Enums.PageLayout.Agenda => "/agenda",
 			Enums.PageLayout.AgendaWithImage => "/agenda-with-image",
-			Enums.PageLayout.AgendaWithBackground => "/agenda-with-background",
+			Enums.PageLayout.AgendaWithBackground => "/agenda?showBackgroundImage=true",
+			Enums.PageLayout.Calendar => "/calendar",
 			Enums.PageLayout.CalendarWithImage => "/calendar-with-image",
-			Enums.PageLayout.CalendarWithBackground => "/calendar-with-background",
+			Enums.PageLayout.CalendarWithBackground => "/calendar?showBackgroundImage=true",
 			_ => "/not-found"
 		} ;
 		Logger.LogInformation("Navigating to '{url}'", destUrl);
