@@ -61,6 +61,42 @@ namespace CalendarView.Shared.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to All day.
+        /// </summary>
+        internal static string AllDay {
+            get {
+                return ResourceManager.GetString("AllDay", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No events.
+        /// </summary>
+        internal static string NoEvents {
+            get {
+                return ResourceManager.GetString("NoEvents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Not found.
+        /// </summary>
+        internal static string NotFound {
+            get {
+                return ResourceManager.GetString("NotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The page style you wanted to use could not be found.
+        /// </summary>
+        internal static string ThePageStyleYouWantedToUseCouldNotBeFound {
+            get {
+                return ResourceManager.GetString("ThePageStyleYouWantedToUseCouldNotBeFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Today.
         /// </summary>
         internal static string Today {

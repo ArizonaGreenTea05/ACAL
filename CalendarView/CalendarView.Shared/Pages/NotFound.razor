@@ -1,5 +1,15 @@
 ﻿@page "/not-found"
+@using System.Globalization
+@using CalendarView.Shared.Models
+@using CalendarView.Shared.Resources
+@inject Design Design
 
-<PageTitle>Not found</PageTitle>
+<PageTitle>@Translations.ResourceManager.GetString(nameof(Translations.NotFound), CurrentCulture)</PageTitle>
 
-<h1 style="background: white; color: black;">The page style you wanted to use could not be found</h1>
+<div style="height: 100vh">
+	<h1 style="color: @Design.ForeColorName">@Translations.ResourceManager.GetString(nameof(Translations.ThePageStyleYouWantedToUseCouldNotBeFound), CurrentCulture)</h1>
+</div>
+
+@code {
+	private CultureInfo CurrentCulture => new(Design.Language);
+}

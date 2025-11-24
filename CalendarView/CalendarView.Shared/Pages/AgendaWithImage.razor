@@ -4,6 +4,7 @@
 @using CalendarView.Core.ViewModels
 @using CalendarView.Services
 @using CalendarView.Shared.Models
+@using CalendarView.Shared.Resources
 @using Common.UI.Extensions
 @using Microsoft.Extensions.Logging
 @using static CalendarView.Shared.Utils.CommonFunctions
@@ -135,7 +136,7 @@
 				@if (todaysEvents.Count <= 0)
 				{
 					<div>
-						<a colspan="4">no events</a>
+						<a colspan="4">>@Translations.ResourceManager.GetString(nameof(Translations.NoEvents), CurrentCulture)</a>
 					</div>
 				}
 
@@ -152,7 +153,7 @@
 							<div class="event-card" style="background-color: @dimBackColor.ToHex(); border-left-color: @backColor.ToHex();">
 								<div class="grid-container" style="grid-template-columns: 100px 100%; padding: 2px; margin: 5px; border-radius: 10px;">
 									<div class="menu" style="text-align: left;">
-										<a style="color: @dimForeColor.ToHex(); font-size: 19px; font-weight: 600;">All day</a>
+										<a style="color: @dimForeColor.ToHex(); font-size: 19px; font-weight: 600;">@Translations.ResourceManager.GetString(nameof(Translations.AllDay), CurrentCulture)</a>
 									</div>
 									<div class="content" style="text-align: left;">
 										<a style="text-align: left; color: @foreColor.ToHex(); font-size: 19px; font-weight: 600;">@ev.Name</a>
