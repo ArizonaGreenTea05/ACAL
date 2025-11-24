@@ -10,6 +10,11 @@ public partial class Design : ObservableObject
     [ObservableProperty] private string _foreColorName = "LightGray";
     [ObservableProperty] private double _eventCardDimmingRatio = 0.3;
     [ObservableProperty] private string _language = CultureInfo.CurrentCulture.Name;
+    [ObservableProperty] private string? _longDateFormat;
+    [ObservableProperty] private string? _shortDateFormat;
+    [ObservableProperty] private string? _shortTimeFormat;
+    [ObservableProperty] private string? _longMonthFormat;
+    [ObservableProperty] private string? _longDayFormat;
     [ObservableProperty] private string? _pictureDirectory;
     [ObservableProperty] private string? _customBackgroundImageOverlay;
     [ObservableProperty] private double _changePictureAfterMinutes = 2;

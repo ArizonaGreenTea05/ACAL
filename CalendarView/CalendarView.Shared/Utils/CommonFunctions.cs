@@ -20,7 +20,7 @@ public static class CommonFunctions
         tomorrow = today.AddDays(1);
     }
 
-    public static void InitCalendarParamsForDay(IEnumerable<CalendarEvent> events, DateTime day, DateTime today, DateTime tomorrow, DateTime yesterday, CultureInfo currentCulture, out List<CalendarEvent> todaysEvents, out List<AllDayCalendarEvent> allDayEvents, out List<DefaultCalendarEvent> normalDayEvents, out string currentDayName)
+    public static void InitCalendarParamsForDay(IEnumerable<CalendarEvent> events, DateTime day, DateTime today, DateTime tomorrow, DateTime yesterday, CultureInfo currentCulture, string? overwriteLongDayFormat, out List<CalendarEvent> todaysEvents, out List<AllDayCalendarEvent> allDayEvents, out List<DefaultCalendarEvent> normalDayEvents, out string currentDayName)
     {
         todaysEvents = [.. events.Where(ev => IsEventAtDay(ev, day))];
         allDayEvents = [.. todaysEvents.OfType<AllDayCalendarEvent>().OrderBy(ev => ev.Start)];
@@ -29,7 +29,7 @@ public static class CommonFunctions
         if (day == today) currentDayNameTemp = Translations.ResourceManager.GetString(nameof(Translations.Today), currentCulture);
         else if (day == tomorrow) currentDayNameTemp = Translations.ResourceManager.GetString(nameof(Translations.Tomorrow), currentCulture);
         else if (day == yesterday) currentDayNameTemp = Translations.ResourceManager.GetString(nameof(Translations.Yesterday), currentCulture);
-        currentDayName = currentDayNameTemp ?? day.ToLongDayString(currentCulture);
+        currentDayName = currentDayNameTemp ?? day.ToLongDayString(overwriteLongDayFormat, currentCulture);
     }
 
     public static bool IsEventAtDay(CalendarEvent ev, DateTime day)

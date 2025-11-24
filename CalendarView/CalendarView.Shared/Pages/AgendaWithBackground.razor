@@ -72,11 +72,11 @@
 		<div>
 			@{
 				InitCalendarParams(CalendarViewModel.Events, out var events, out var startDay, out var endDay, out var today, out var yesterday, out var tomorrow);
-				var lastMonth = startDay.ToLongMonthString(CurrentCulture);
+				var lastMonth = startDay.ToLongMonthString(Design.LongMonthFormat, CurrentCulture);
 			}
 			@for (var day = startDay; day <= endDay; day = day.AddDays(1))
 			{
-				var currentMonth = day.ToLongMonthString(CurrentCulture);
+				var currentMonth = day.ToLongMonthString(Design.LongMonthFormat, CurrentCulture);
 
 				if (currentMonth != lastMonth)
 				{
@@ -87,7 +87,7 @@
 				}
 
 
-				InitCalendarParamsForDay(events, day, today, tomorrow, yesterday, CurrentCulture, out var todaysEvents, out var allDayEvents, out var normalDayEvents, out var currentDayName);
+				InitCalendarParamsForDay(events, day, today, tomorrow, yesterday, CurrentCulture, Design.LongDayFormat, out var todaysEvents, out var allDayEvents, out var normalDayEvents, out var currentDayName);
 
 				@if (todaysEvents.Count <= 0) continue;
 
@@ -122,7 +122,7 @@
 										<a style="text-align: left; color: @foreColor.ToHex(); font-size: 19px; font-weight: 600;">@ev.Name</a>
 										<br>
 										<a style="text-align: left; color: @dimForeColor.ToHex()">
-											@ev.Start.ToShortShortDateString(CurrentCulture) @(ev.Start == ev.End ? "" : $"- {ev.End.ToShortShortDateString(CurrentCulture)}")
+											@ev.Start.ToShortDateString(Design.ShortDateFormat, CurrentCulture) @(ev.Start == ev.End ? "" : $"- {ev.End.ToShortDateString(Design.ShortDateFormat, CurrentCulture)}")
 										</a>
 									</div>
 								</div>
@@ -147,18 +147,18 @@
 								<div class="grid-container" style="grid-template-columns: 100px 100%; padding: 2px; margin: 5px; border-radius: 10px;">
 									<div class="menu" style="text-align: left;">
 										<a style="color: @dimForeColor.ToHex(); font-size: 19px; font-weight: 600;">
-											@ev.Start.ToShortTimeString(CurrentCulture)
+											@ev.Start.ToShortTimeString(Design.ShortTimeFormat, CurrentCulture)
 										</a>
 										<br />
 										<a style="color: @dimForeColor.ToHex();">
-											@ev.End.ToShortTimeString(CurrentCulture)
+											@ev.End.ToShortTimeString(Design.ShortTimeFormat, CurrentCulture)
 										</a>
 									</div>
 									<div class="content" style="text-align: left;">
 										<a style="text-align: left; color: @foreColor.ToHex(); font-size: 19px; font-weight: 600;">@ev.Name</a>
 										<br>
 										<a style="text-align: left; color: @dimForeColor.ToHex();">
-											@ev.Start.Date.ToShortShortDateString(CurrentCulture) @(ev.Start.Date == ev.End.Date ? "" : $"- {ev.End.Date.ToShortShortDateString(CurrentCulture)}")
+											@ev.Start.Date.ToShortDateString(Design.ShortDateFormat, CurrentCulture) @(ev.Start.Date == ev.End.Date ? "" : $"- {ev.End.Date.ToShortDateString(Design.ShortDateFormat, CurrentCulture)}")
 										</a>
 									</div>
 								</div>
@@ -203,10 +203,10 @@
 			_timeTimer = new Timer(TimeSpan.FromSeconds(10));
 			_timeTimer.Elapsed += async (_, _) =>
 			{
-				var currentTimeString = DateTime.Now.ToShortTimeString(CurrentCulture);
+				var currentTimeString = DateTime.Now.ToShortTimeString(Design.ShortTimeFormat, CurrentCulture);
 				if (currentTimeString == _currentTimeString) return;
 				_currentTimeString = currentTimeString;
-				_currentDateString = DateTime.Now.ToLongDateString(CurrentCulture);
+				_currentDateString = DateTime.Now.ToLongDateString(Design.LongDateFormat, CurrentCulture);
 				await InvokeAsync(StateHasChanged);
 				Logger.LogDebug("Time updated");
 			};

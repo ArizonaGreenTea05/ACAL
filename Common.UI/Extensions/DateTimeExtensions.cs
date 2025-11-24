@@ -5,22 +5,22 @@ namespace Common.UI.Extensions;
 
 public static class DateTimeExtensions
 {
-    public static string ToShortShortDateString(this DateTime dateTime, CultureInfo? cultureInfo = null) =>
-        DateOnly.FromDateTime(dateTime).ToShortShortDateString(cultureInfo);
-
-    public static string ToShortShortDateString(this DateOnly dateOnly, CultureInfo? cultureInfo = null)
+    public static string ToShortDateString(this DateOnly dateOnly, string? overwriteFormat = null, CultureInfo? cultureInfo = null)
     {
         cultureInfo ??= CultureInfo.CurrentCulture;
         var pattern = cultureInfo.DateTimeFormat.ShortDatePattern;
         pattern = Regex.Replace(pattern, "[/\\- ]?y+[/\\-. ]?", "");
-        return dateOnly.ToString(pattern, cultureInfo);
+        return dateOnly.ToString(overwriteFormat ?? pattern, cultureInfo);
     }
 
-    public static string ToLongDayString(this DateTime dateTime, CultureInfo? cultureInfo = null) => dateTime.ToString("dddd", cultureInfo);
+    extension(DateTime dateTime)
+    {
+        public string ToShortDateString(string? overwriteFormat = null, CultureInfo? cultureInfo = null) =>
+            DateOnly.FromDateTime(dateTime).ToShortDateString(overwriteFormat, cultureInfo);
 
-    public static string ToLongMonthString(this DateTime dateTime, CultureInfo? cultureInfo = null) => dateTime.ToString("MMMM", cultureInfo);
-
-    public static string ToShortTimeString(this DateTime dateTime, CultureInfo? cultureInfo = null) => dateTime.ToString("t", cultureInfo);
-
-    public static string ToLongDateString(this DateTime dateTime, CultureInfo? cultureInfo = null) => dateTime.ToString("D", cultureInfo);
+        public string ToLongDayString(string? overwriteFormat = null, CultureInfo? cultureInfo = null) => dateTime.ToString(overwriteFormat ?? "dddd", cultureInfo);
+        public string ToLongMonthString(string? overwriteFormat = null, CultureInfo? cultureInfo = null) => dateTime.ToString(overwriteFormat ?? "MMMM", cultureInfo);
+        public string ToShortTimeString(string? overwriteFormat = null, CultureInfo? cultureInfo = null) => dateTime.ToString(overwriteFormat ?? "t", cultureInfo);
+        public string ToLongDateString(string? overwriteFormat = null, CultureInfo? cultureInfo = null) => dateTime.ToString(overwriteFormat ?? "D", cultureInfo);
+    }
 }
