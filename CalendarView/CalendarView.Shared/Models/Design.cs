@@ -16,7 +16,9 @@ public partial class Design : ObservableObject
     [ObservableProperty] private string? _longMonthFormat;
     [ObservableProperty] private string? _longDayFormat;
     [ObservableProperty] private string? _pictureDirectory;
+    [ObservableProperty] private string? _customSideImageOverlay;
     [ObservableProperty] private string? _customBackgroundImageOverlay;
+    [ObservableProperty] private string? _customBackgroundImageBlur;
     [ObservableProperty] private double _changePictureAfterMinutes = 2;
 
     [ObservableProperty] private bool _swapPictureAndContentInLandscape;

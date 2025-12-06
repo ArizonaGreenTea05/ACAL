@@ -7,18 +7,29 @@
 @using CalendarView.Shared.Resources
 @using Common.UI.Extensions
 @using Microsoft.Extensions.Logging
+@using Microsoft.AspNetCore.WebUtilities
 @using static CalendarView.Shared.Utils.CommonFunctions
 @inject CalendarViewModel CalendarViewModel
 @inject Design Design
 @inject ILogger<AgendaWithImage> Logger
 @inject PictureService PictureService
+@inject NavigationManager Navigation;
 
 <PageTitle>Calendar</PageTitle>
 
 <style>
+	.side-image {
+		background-image:
+		@(Design.CustomSideImageOverlay ?? "radial-gradient(circle at center, rgba(0, 0, 0, 0.2) 40%, rgba(0, 0, 0, 0.8) 100%)"), url('@CurrentPictureUrl');
+		background-blend-mode: multiply;
+		background-repeat: no-repeat;
+		background-position: center;
+		background-size: cover;
+	}
+
 	.background-image {
 		background-image:
-		@(Design.CustomBackgroundImageOverlay ?? "radial-gradient(circle at center, rgba(0, 0, 0, 0.2) 40%, rgba(0, 0, 0, 0.8) 100%)"), url('@CurrentPictureUrl');
+		@(Design.CustomBackgroundImageOverlay ?? "radial-gradient(circle at center, rgba(0, 0, 0, 0.7) 40%, rgba(0, 0, 0, 0.8) 100%)"), url('@CurrentPictureUrl');
 		background-blend-mode: multiply;
 		background-repeat: no-repeat;
 		background-position: center;
@@ -73,8 +84,8 @@
 	}
 </style>
 
-<div class="grid-container grid-container-overwrite" style="margin: 0px; padding: 0px; height: 100vh; width: 100%;">
-	<div class="menu background-image menu-overwrite" style="padding: 0px 20px 15px 0px; display: flex; flex-direction: column;">
+<div class="grid-container grid-container-overwrite @(ShowBackgroundImage ? "background-image" : string.Empty)" style="margin: 0px; padding: 0px; height: 100vh; width: 100%;">
+	<div class="menu side-image menu-overwrite" style="padding: 0px 20px 15px 0px; display: flex; flex-direction: column;">
 		<div>
 			@if (Design.ShowTime)
 			{
@@ -106,106 +117,108 @@
 			</div>
 		}
 	</div>
-	<div class="content content-overwrite">
-		<div>
-			@{
-				InitCalendarParams(CalendarViewModel.Events, out var events, out var startDay, out var endDay, out var today, out var yesterday, out var tomorrow);
-				var lastMonth = startDay.ToLongMonthString(Design.LongMonthFormat, CurrentCulture);
-			}
-			@for (var day = startDay; day <= endDay; day = day.AddDays(1))
-			{
-				var currentMonth = day.ToLongMonthString(Design.LongMonthFormat, CurrentCulture);
-
-				if (currentMonth != lastMonth)
-				{
-					lastMonth = currentMonth;
-					<div style="padding-top: 20px;">
-						<a style="font-size: 40px; font-weight: 600;">@currentMonth</a>
-					</div>
+	<div class="content content-overwrite" style="padding: 0;">
+		<div style="min-height: 100%; backdrop-filter: blur(@(Design.CustomBackgroundImageBlur ?? "10px")); padding: 10px;">
+			<div>
+				@{
+					InitCalendarParams(CalendarViewModel.Events, out var events, out var startDay, out var endDay, out var today, out var yesterday, out var tomorrow);
+					var lastMonth = startDay.ToLongMonthString(Design.LongMonthFormat, CurrentCulture);
 				}
-
-				InitCalendarParamsForDay(events, day, today, tomorrow, yesterday, CurrentCulture, Design.LongDayFormat, out var todaysEvents, out var allDayEvents, out var normalDayEvents, out var currentDayName);
-
-				@if (todaysEvents.Count <= 0) continue;
-
-				<div>
-					<a style="font-size: 40px; font-weight: 400;">@day.Day</a>
-					<a style="font-size: 30px; padding-left: 10px;">@currentDayName</a>
-				</div>
-
-				@if (todaysEvents.Count <= 0)
+				@for (var day = startDay; day <= endDay; day = day.AddDays(1))
 				{
+					var currentMonth = day.ToLongMonthString(Design.LongMonthFormat, CurrentCulture);
+
+					if (currentMonth != lastMonth)
+					{
+						lastMonth = currentMonth;
+						<div style="padding-top: 20px;">
+							<a style="font-size: 40px; font-weight: 600;">@currentMonth</a>
+						</div>
+					}
+
+					InitCalendarParamsForDay(events, day, today, tomorrow, yesterday, CurrentCulture, Design.LongDayFormat, out var todaysEvents, out var allDayEvents, out var normalDayEvents, out var currentDayName);
+
+					@if (todaysEvents.Count <= 0) continue;
+
 					<div>
-						<a colspan="4">>@Translations.ResourceManager.GetString(nameof(Translations.NoEvents), CurrentCulture)</a>
+						<a style="font-size: 40px; font-weight: 400;">@day.Day</a>
+						<a style="font-size: 30px; padding-left: 10px;">@currentDayName</a>
 					</div>
-				}
 
-				@if (allDayEvents.Count > 0)
-				{
-					<div class="flow-grid-container" style="margin: 5px;">
-						@foreach (var ev in allDayEvents.OrderBy(ev => ev.Start))
-						{
-							var backColor = ev.Calendar.Color;
-							var dimBackColor = backColor.GetDimColor(Design.EventCardDimmingRatio);
-							var foreColor = dimBackColor.GetForeColor();
-							var dimForeColor = foreColor.GetDimColor(0.9);
+					@if (todaysEvents.Count <= 0)
+					{
+						<div>
+							<a colspan="4">>@Translations.ResourceManager.GetString(nameof(Translations.NoEvents), CurrentCulture)</a>
+						</div>
+					}
 
-							<div class="event-card" style="background-color: @dimBackColor.ToHex(); border-left-color: @backColor.ToHex();">
-								<div class="grid-container" style="grid-template-columns: 100px 100%; padding: 2px; margin: 5px; border-radius: 10px;">
-									<div class="menu" style="text-align: left;">
-										<a style="color: @dimForeColor.ToHex(); font-size: 19px; font-weight: 600;">@Translations.ResourceManager.GetString(nameof(Translations.AllDay), CurrentCulture)</a>
-									</div>
-									<div class="content" style="text-align: left;">
-										<a style="text-align: left; color: @foreColor.ToHex(); font-size: 19px; font-weight: 600;">@ev.Name</a>
-										<br>
-										<a style="text-align: left; color: @dimForeColor.ToHex()">
-											@ev.Start.ToShortDateString(Design.ShortDateFormat, CurrentCulture) @(ev.Start == ev.End ? "" : $"- {ev.End.ToShortDateString(Design.ShortDateFormat, CurrentCulture)}")
-										</a>
+					@if (allDayEvents.Count > 0)
+					{
+						<div class="flow-grid-container" style="margin: 5px;">
+							@foreach (var ev in allDayEvents.OrderBy(ev => ev.Start))
+							{
+								var backColor = ev.Calendar.Color;
+								var dimBackColor = backColor.GetDimColor(Design.EventCardDimmingRatio);
+								var foreColor = dimBackColor.GetForeColor();
+								var dimForeColor = foreColor.GetDimColor(0.9);
+
+								<div class="event-card" style="background-color: @dimBackColor.ToHex(); border-left-color: @backColor.ToHex();">
+									<div class="grid-container" style="grid-template-columns: 100px 100%; padding: 2px; margin: 5px; border-radius: 10px;">
+										<div class="menu" style="text-align: left;">
+											<a style="color: @dimForeColor.ToHex(); font-size: 19px; font-weight: 600;">@Translations.ResourceManager.GetString(nameof(Translations.AllDay), CurrentCulture)</a>
+										</div>
+										<div class="content" style="text-align: left;">
+											<a style="text-align: left; color: @foreColor.ToHex(); font-size: 19px; font-weight: 600;">@ev.Name</a>
+											<br>
+											<a style="text-align: left; color: @dimForeColor.ToHex()">
+												@ev.Start.ToShortDateString(Design.ShortDateFormat, CurrentCulture) @(ev.Start == ev.End ? "" : $"- {ev.End.ToShortDateString(Design.ShortDateFormat, CurrentCulture)}")
+											</a>
+										</div>
 									</div>
 								</div>
-							</div>
 
-							Logger.LogDebug("Added all day event '{name}' of calendar '{calendar}' with color {backColor}", ev.Name, ev.Calendar.Name, backColor.ToHex());
-						}
-					</div>
-				}
+								Logger.LogDebug("Added all day event '{name}' of calendar '{calendar}' with color {backColor}", ev.Name, ev.Calendar.Name, backColor.ToHex());
+							}
+						</div>
+					}
 
-				@if(normalDayEvents.Count > 0)
-				{
-					<div style="margin: 5px; @(allDayEvents.Count > 0 ? "margin-top: 15px;" : string.Empty)">
-						@foreach (var ev in normalDayEvents.OrderBy(ev => ev.Start))
-						{
-							var backColor = ev.Calendar.Color;
-							var dimBackColor = backColor.GetDimColor(Design.EventCardDimmingRatio);
-							var foreColor = dimBackColor.GetForeColor();
-							var dimForeColor = foreColor.GetDimColor(0.9);
+					@if (normalDayEvents.Count > 0)
+					{
+						<div style="margin: 5px; @(allDayEvents.Count > 0 ? "margin-top: 15px;" : string.Empty)">
+							@foreach (var ev in normalDayEvents.OrderBy(ev => ev.Start))
+							{
+								var backColor = ev.Calendar.Color;
+								var dimBackColor = backColor.GetDimColor(Design.EventCardDimmingRatio);
+								var foreColor = dimBackColor.GetForeColor();
+								var dimForeColor = foreColor.GetDimColor(0.9);
 
-							<div class="event-card" style="background-color: @dimBackColor.ToHex(); border-left-color: @backColor.ToHex(); margin-bottom: 10px;">
-								<div class="grid-container" style="grid-template-columns: 100px 100%; padding: 2px; margin: 5px; border-radius: 10px;">
-									<div class="menu" style="text-align: left;">
-										<a style="color: @dimForeColor.ToHex(); font-size: 19px; font-weight: 600;">
-											@ev.Start.ToShortTimeString(Design.ShortTimeFormat, CurrentCulture)
-										</a>
-										<br />
-										<a style="color: @dimForeColor.ToHex();">
-											@ev.End.ToShortTimeString(Design.ShortTimeFormat, CurrentCulture)
-										</a>
-									</div>
-									<div class="content" style="text-align: left;">
-										<a style="text-align: left; color: @foreColor.ToHex(); font-size: 19px; font-weight: 600;">@ev.Name</a>
-										<br>
-										<a style="text-align: left; color: @dimForeColor.ToHex();">
-											@ev.Start.Date.ToShortDateString(Design.ShortDateFormat, CurrentCulture) @(ev.Start.Date == ev.End.Date ? "" : $"- {ev.End.Date.ToShortDateString(Design.ShortDateFormat, CurrentCulture)}")
-										</a>
+								<div class="event-card" style="background-color: @dimBackColor.ToHex(); border-left-color: @backColor.ToHex(); margin-bottom: 10px;">
+									<div class="grid-container" style="grid-template-columns: 100px 100%; padding: 2px; margin: 5px; border-radius: 10px;">
+										<div class="menu" style="text-align: left;">
+											<a style="color: @dimForeColor.ToHex(); font-size: 19px; font-weight: 600;">
+												@ev.Start.ToShortTimeString(Design.ShortTimeFormat, CurrentCulture)
+											</a>
+											<br />
+											<a style="color: @dimForeColor.ToHex();">
+												@ev.End.ToShortTimeString(Design.ShortTimeFormat, CurrentCulture)
+											</a>
+										</div>
+										<div class="content" style="text-align: left;">
+											<a style="text-align: left; color: @foreColor.ToHex(); font-size: 19px; font-weight: 600;">@ev.Name</a>
+											<br>
+											<a style="text-align: left; color: @dimForeColor.ToHex();">
+												@ev.Start.Date.ToShortDateString(Design.ShortDateFormat, CurrentCulture) @(ev.Start.Date == ev.End.Date ? "" : $"- {ev.End.Date.ToShortDateString(Design.ShortDateFormat, CurrentCulture)}")
+											</a>
+										</div>
 									</div>
 								</div>
-							</div>
 
-							Logger.LogDebug("Added event '{name}' of calendar '{calendar}' with color {backColor}", ev.Name, ev.Calendar.Name, backColor.ToHex());
-						}
-					</div>
+								Logger.LogDebug("Added event '{name}' of calendar '{calendar}' with color {backColor}", ev.Name, ev.Calendar.Name, backColor.ToHex());
+							}
+						</div>
+					}
 				}
-			}
+			</div>
 		</div>
 	</div>
 </div>
@@ -217,11 +230,23 @@
 	private string _currentDateString = DateTime.Now.ToLongDateString();
 	private CultureInfo CurrentCulture => new(Design.Language);
 
+	[Parameter] public bool ShowBackgroundImage { get; set; } = false;
+
 	private string CurrentPictureUrl => PictureService.CurrentPictureBase64 is null ? string.Empty : $"data:image/jpeg;base64,{PictureService.CurrentPictureBase64}";
 
 	protected override async Task OnInitializedAsync()
 	{
 		Logger.LogInformation("Started initialization");
+
+		var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
+		var queryParameters = QueryHelpers.ParseQuery(uri.Query);
+		if (queryParameters.TryGetValue(key: "showBackgroundImage",
+			    value: out var showBackgroundImage))
+		{
+			ShowBackgroundImage = bool.TryParse(showBackgroundImage, out var showImage) && showImage;
+			Logger.LogInformation("ShowBackgroundImage={value}", ShowBackgroundImage);
+		}
+
 		if (_timeTimer is null)
 		{
 			_timeTimer = new Timer(TimeSpan.FromSeconds(10));
