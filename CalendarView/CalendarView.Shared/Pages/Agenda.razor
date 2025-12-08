@@ -1,4 +1,4 @@
-﻿@page "/agenda-with-image"
+﻿@page "/agenda"
 @using System.Globalization
 @using System.Timers
 @using CalendarView.Core.ViewModels
@@ -7,11 +7,11 @@
 @using CalendarView.Shared.Resources
 @using Common.UI.Extensions
 @using Microsoft.Extensions.Logging
-@using Microsoft.AspNetCore.WebUtilities
+@using Microsoft.AspNetCore.WebUtilities;
 @using static CalendarView.Shared.Utils.CommonFunctions
 @inject CalendarViewModel CalendarViewModel
 @inject Design Design
-@inject ILogger<AgendaWithImage> Logger
+@inject ILogger<Agenda> Logger
 @inject PictureService PictureService
 @inject NavigationManager Navigation;
 
@@ -20,7 +20,7 @@
 <style>
 	.side-image {
 		background-image:
-		@(Design.CustomSideImageOverlay ?? "radial-gradient(circle at center, rgba(0, 0, 0, 0.2) 40%, rgba(0, 0, 0, 0.8) 100%)"), url('@CurrentPictureUrl');
+		@(DifferentiatedDesign.CustomSideImageOverlay ?? "radial-gradient(circle at center, rgba(0, 0, 0, 0.2) 40%, rgba(0, 0, 0, 0.8) 100%)"), url('@CurrentPictureUrl');
 		background-blend-mode: multiply;
 		background-repeat: no-repeat;
 		background-position: center;
@@ -29,7 +29,7 @@
 
 	.background-image {
 		background-image:
-		@(Design.CustomBackgroundImageOverlay ?? "radial-gradient(circle at center, rgba(0, 0, 0, 0.7) 40%, rgba(0, 0, 0, 0.8) 100%)"), url('@CurrentPictureUrl');
+		@(DifferentiatedDesign.CustomBackgroundImageOverlay ?? "radial-gradient(circle at center, rgba(0, 0, 0, 0.7) 40%, rgba(0, 0, 0, 0.8) 100%)"), url('@CurrentPictureUrl');
 		background-blend-mode: multiply;
 		background-repeat: no-repeat;
 		background-position: center;
@@ -40,11 +40,11 @@
 		.grid-container-overwrite {
 			grid-template-areas:
 				"header"
-				"@(Design.SwapPictureAndContentInPortrait ? "content" : "menu")"
-				"@(Design.SwapPictureAndContentInPortrait ? "menu" : "content")"
+				"@(DifferentiatedDesign.SwapPictureAndContentInPortrait ? "content" : "menu")"
+				"@(DifferentiatedDesign.SwapPictureAndContentInPortrait ? "menu" : "content")"
 				"footer";
 			grid-template-columns: 1fr;
-			grid-template-rows: @(Design.SwapPictureAndContentInPortrait ? "0fr 2fr 1fr 0fr" : "0fr 1fr 2fr 0fr");
+			grid-template-rows: @(DifferentiatedDesign.SwapPictureAndContentInPortrait ? "0fr 2fr 1fr 0fr" : "0fr 1fr 2fr 0fr");
 		}
 
 		.flow-grid-container {
@@ -60,9 +60,9 @@
 		.grid-container-overwrite {
 			grid-template-areas:
 				"header header"
-				"@(Design.SwapPictureAndContentInLandscape ? "content menu" : "menu content")"
+				"@(DifferentiatedDesign.SwapPictureAndContentInLandscape ? "content menu" : "menu content")"
 				"footer footer";
-			grid-template-columns: @(Design.SwapPictureAndContentInLandscape ? "3fr 2fr" : "2fr 3fr");
+			grid-template-columns: @(DifferentiatedDesign.SwapPictureAndContentInLandscape ? "3fr 2fr" : "2fr 3fr");
 		}
 
 		.flow-grid-container {
@@ -84,42 +84,82 @@
 	}
 </style>
 
-<div class="grid-container grid-container-overwrite @(ShowBackgroundImage ? "background-image" : string.Empty)" style="margin: 0px; padding: 0px; height: 100vh; width: 100%;">
-	<div class="menu side-image menu-overwrite" style="padding: 0px 20px 15px 0px; display: flex; flex-direction: column;">
-		<div>
-			@if (Design.ShowTime)
-			{
-				<div style="width: fit-content; margin: 0px 0px 0px auto; padding: 0px;">
-					<a style="font-size: 80px">@_currentTimeString</a>
-				</div>
-			}
-			@if (Design.ShowDate)
-			{
-				<div style="width: fit-content; margin: 0px 0px 0px auto; padding: 0px;">
-					<a style="font-size: 19px">@_currentDateString</a>
-				</div>
-			}
-		</div>
-		<div style="flex: 1;">
-		</div>
-		@if (Design.ShowColorLegend)
+<div class="@(ShowBackgroundImage ? "background-image" : "")" style="margin: 0px; padding: 0px; height: 100vh; width: 100%;">
+	<div class="grid-container @(ShowImage ? "grid-container-overwrite" : "")" style="margin: 0; padding: 0; height: 100vh; width: 100%; backdrop-filter: blur(@(DifferentiatedDesign.CustomBackgroundImageBlur ?? "10px")); @(ShowImage ? "" : "grid-template-columns: 0fr 1fr;")">
+		@if (ShowImage)
 		{
-			<div style="align-content: end;">
-				<div style="width: fit-content; margin-left: auto; margin-right: 0px;">
-					@foreach (var calendar in GetCalendarsOrderedByColor(CalendarViewModel.Calendars, Design.EventCardDimmingRatio))
+			<div class="menu side-image menu-overwrite" style="padding: 0px 20px 15px 0px; display: flex; flex-direction: column;">
+				<div>
+					@if (DifferentiatedDesign.ShowTime)
 					{
-						<div class="event-card" style="background-color: @calendar.dimBackColor.ToHex(); border-left-color: @calendar.backColor.ToHex(); color: @calendar.foreColor.ToHex(); margin: 3px; padding: 0px 5px; border-radius: 5px; border-left-width: 3px">
-							@calendar.calendar.Name
+						<div style="width: fit-content; margin: 0px 0px 0px auto; padding: 0px;">
+							<a style="font-size: 80px">@_currentTimeString</a>
 						</div>
-						Logger.LogDebug("Added calendar '{name} with color {backColor}", calendar.calendar.Name, calendar.backColor.ToHex());
+					}
+					@if (DifferentiatedDesign.ShowDate)
+					{
+						<div style="width: fit-content; margin: 0px 0px 0px auto; padding: 0px;">
+							<a style="font-size: 19px">@_currentDateString</a>
+						</div>
+					}
+				</div>
+				<div style="flex: 1;">
+				</div>
+				@if (DifferentiatedDesign.ShowColorLegend)
+				{
+					<div style="align-content: end;">
+						<div style="width: fit-content; margin-left: auto; margin-right: 0px;">
+							@foreach (var calendar in GetCalendarsOrderedByColor(CalendarViewModel.Calendars, Design.EventCardDimmingRatio))
+							{
+								<div class="event-card" style="background-color: @calendar.dimBackColor.ToHex(); border-left-color: @calendar.backColor.ToHex(); color: @calendar.foreColor.ToHex(); margin: 3px; padding: 0px 5px; border-radius: 5px; border-left-width: 3px">
+									@calendar.calendar.Name
+								</div>
+								Logger.LogDebug("Added calendar '{name} with color {backColor}", calendar.calendar.Name, calendar.backColor.ToHex());
+							}
+						</div>
+					</div>
+				}
+			</div>
+		}
+		else
+		{
+			<div class="header" style="display: flex; flex-direction: row;">
+				<div>
+					@if (DifferentiatedDesign.ShowTime)
+					{
+						<div style="width: fit-content; margin: 0px auto 0px 10px; padding: 0px;">
+							<a style="font-size: 80px">@_currentTimeString</a>
+						</div>
+					}
+					@if (DifferentiatedDesign.ShowDate)
+					{
+						<div style="width: fit-content; margin: 0px auto 10px 10px; padding: 0px;">
+							<a style="font-size: 19px">@_currentDateString</a>
+						</div>
+					}
+				</div>
+			</div>
+
+			<div class="footer">
+				<div>
+					@if (DifferentiatedDesign.ShowColorLegend)
+					{
+						<div style="width: 100%; display: flex; flex-direction: row; margin: 2px;">
+							@foreach (var calendar in GetCalendarsOrderedByColor(CalendarViewModel.Calendars, Design.EventCardDimmingRatio))
+							{
+								<div class="event-card" style="background-color: @calendar.dimBackColor.ToHex(); border-left-color: @calendar.backColor.ToHex(); color: @calendar.foreColor.ToHex(); margin: 3px; padding: 0px 5px; border-radius: 5px; border-left-width: 3px">
+									@calendar.calendar.Name
+								</div>
+								Logger.LogDebug("Added calendar '{name} with color {backColor}", calendar.calendar.Name, calendar.backColor.ToHex());
+							}
+						</div>
 					}
 				</div>
 			</div>
 		}
-	</div>
-	<div class="content content-overwrite" style="padding: 0;">
-		<div style="min-height: 100%; backdrop-filter: blur(@(Design.CustomBackgroundImageBlur ?? "10px")); padding: 10px;">
-			<div>
+
+		<div class="content @(ShowImage ? "content-overwrite" : "")" style="padding: 0; @(ShowImage ? "" : "grid-area: content;	overflow-y: scroll; overflow-x: hidden; height: 100%; margin: 0px;")">
+			<div style="height: 100%; padding: 10px;">
 				@{
 					InitCalendarParams(CalendarViewModel.Events, out var events, out var startDay, out var endDay, out var today, out var yesterday, out var tomorrow);
 					var lastMonth = startDay.ToLongMonthString(Design.LongMonthFormat, CurrentCulture);
@@ -135,6 +175,7 @@
 							<a style="font-size: 40px; font-weight: 600;">@currentMonth</a>
 						</div>
 					}
+
 
 					InitCalendarParamsForDay(events, day, today, tomorrow, yesterday, CurrentCulture, Design.LongDayFormat, out var todaysEvents, out var allDayEvents, out var normalDayEvents, out var currentDayName);
 
@@ -229,6 +270,10 @@
 	private string _currentTimeString = DateTime.Now.ToShortTimeString();
 	private string _currentDateString = DateTime.Now.ToLongDateString();
 	private CultureInfo CurrentCulture => new(Design.Language);
+	private DifferentiatedDesign DifferentiatedDesign => Design.GetDesign(
+		PageLayoutTranslation.Translations.FirstOrDefault(t => t.Value.ShowBackgroundImage == ShowBackgroundImage && t.Value.ShowImage == ShowImage).Key);
+
+	[Parameter] public bool ShowImage { get; set; } = false;
 
 	[Parameter] public bool ShowBackgroundImage { get; set; } = false;
 
@@ -240,12 +285,19 @@
 
 		var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
 		var queryParameters = QueryHelpers.ParseQuery(uri.Query);
-		if (queryParameters.TryGetValue(key: "showBackgroundImage",
-			    value: out var showBackgroundImage))
+		if (queryParameters.TryGetValue(key: nameof(PageLayoutTranslation.ShowBackgroundImage),
+				value: out var showBackgroundImage))
 		{
 			ShowBackgroundImage = bool.TryParse(showBackgroundImage, out var showImage) && showImage;
-			Logger.LogInformation("ShowBackgroundImage={value}", ShowBackgroundImage);
+			Logger.LogInformation("{paramName}={value}", nameof(PageLayoutTranslation.ShowBackgroundImage), ShowBackgroundImage);
 		}
+		if (queryParameters.TryGetValue(key: nameof(PageLayoutTranslation.ShowImage),
+			    value: out var showSideImage))
+		{
+			ShowImage = bool.TryParse(showSideImage, out var showImage) && showImage;
+			Logger.LogInformation("{paramName}={value}", nameof(PageLayoutTranslation.ShowImage), ShowImage);
+		}
+
 
 		if (_timeTimer is null)
 		{
@@ -263,11 +315,15 @@
 			Logger.LogInformation("Initialized time timer");
 		}
 
+		PictureService.PictureHasChanged += async (_, _) =>
+		{
+			if (ShowBackgroundImage) await InvokeAsync(StateHasChanged);
+		};
 		CalendarViewModel.RefreshedCalendars += async (_, _) => await InvokeAsync(StateHasChanged);
-		PictureService.PictureHasChanged += async (_, _) => await InvokeAsync(StateHasChanged);
 
 		_timeTimer.Start();
 		CalendarViewModel.StartRefreshTimer();
+
 		await InvokeAsync(StateHasChanged);
 		Logger.LogInformation("Finished initialization");
 	}

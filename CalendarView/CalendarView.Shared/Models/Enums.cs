@@ -7,10 +7,10 @@ public static class Enums
         Agenda,
         AgendaWithImage,
         AgendaWithBackground,
+        AgendaWithImageAndBackground,
         Calendar,
         CalendarWithImage,
         CalendarWithBackground,
-        AgendaWithImageAndBackground,
         CalendarWithImageAndBackground
     }
 }

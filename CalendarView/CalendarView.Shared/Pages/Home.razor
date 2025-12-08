@@ -8,21 +8,23 @@
 <PageTitle>Loading...</PageTitle>
 
 @code {
+	private readonly Dictionary<string, List<Enums.PageLayout>> _urls = new()
+	{
+		{ "/agenda", [Enums.PageLayout.Agenda, Enums.PageLayout.AgendaWithImage, Enums.PageLayout.AgendaWithBackground, Enums.PageLayout.AgendaWithImageAndBackground] },
+		{ "/calendar", [Enums.PageLayout.Calendar, Enums.PageLayout.CalendarWithImage, Enums.PageLayout.CalendarWithBackground, Enums.PageLayout.CalendarWithImageAndBackground] }
+	};
+
 	protected override void OnAfterRender(bool firstRender)
 	{
 		base.OnAfterRender(firstRender);
-		var destUrl = Design.PageLayout switch
-		{
-			Enums.PageLayout.Agenda => "/agenda",
-			Enums.PageLayout.AgendaWithImage => "/agenda-with-image",
-			Enums.PageLayout.AgendaWithBackground => "/agenda?showBackgroundImage=true",
-			Enums.PageLayout.AgendaWithImageAndBackground => "/agenda-with-image?showBackgroundImage=true",
-			Enums.PageLayout.Calendar => "/calendar",
-			Enums.PageLayout.CalendarWithImage => "/calendar-with-image",
-			Enums.PageLayout.CalendarWithBackground => "/calendar?showBackgroundImage=true",
-			Enums.PageLayout.CalendarWithImageAndBackground => "/calendar-with-image?showBackgroundImage=true",
-			_ => "/not-found"
-		} ;
+
+		var destUrl = _urls.FirstOrDefault(x => x.Value.Contains(Design.PageLayout)).Key ?? "/not-found";
+
+		var parameters = typeof(PageLayoutTranslation).GetProperties().Where(p => p.CanRead && p.Name != nameof(PageLayoutTranslation.Translations))
+			.Select(p => $"{p.Name}={(PageLayoutTranslation.Translations.TryGetValue(Design.PageLayout, out var val) ? p.GetValue(val) : null)}").ToList();
+
+		if (parameters.Count > 0) destUrl += $"?{string.Join('&', parameters)}";
+
 		Logger.LogInformation("Navigating to '{url}'", destUrl);
 		Nav.NavigateTo(destUrl, forceLoad: false);
 	}
