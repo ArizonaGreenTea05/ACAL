@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/HelperProjects/">
+    <Project Path="HelperProjects/SpotifyTokenHelper/SpotifyTokenHelper.csproj" Id="32f8f91c-f15a-4bb3-be2d-c730d582b1b5" />
+  </Folder>
   <Folder Name="/Testing/">
     <Project Path="CalendarView.Core.Tests/CalendarView.Core.Tests.csproj" Id="b2e76254-84f3-4dea-8c18-76c3785d9683" />
     <Project Path="Common.UI.Tests/Common.UI.Tests.csproj" Id="291f3695-ba43-4111-8320-79f5ad1c840a" />
@@ -12,4 +15,5 @@
   <Project Path="CalendarView.Core/CalendarView.Core.csproj" />
   <Project Path="CalendarView.Services/CalendarView.Services.csproj" />
   <Project Path="Common/Common.csproj" Id="4aba50c8-03f1-4cb1-a8fa-b45558d88520" />
+  <Project Path="Spotify/Spotify.csproj" Id="0eae6fd6-f485-465e-9690-4aac8555a4e7" />
 </Solution>

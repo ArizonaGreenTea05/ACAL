@@ -1,3 +1,4 @@
+using CalendarView.Services.Music.Spotify;
 using CalendarView.Web.Components;
 using CalendarView.Web.Services;
 using static CalendarView.Shared.Utils.Initialization;
@@ -8,11 +9,11 @@ public class Program
 {
     public static void Main(string[] args)
     {
-        LoadAppsettings(out var calendars, out var design, out var loggingConfig);
+        LoadAppsettings(out var calendars, out var design, out var loggingConfig, out var spotifyLoginData);
 
         var builder = WebApplication.CreateBuilder(args);
 
-        builder.Services.RegisterServices<FormFactor>(calendars, design);
+        builder.Services.RegisterServices<FormFactor, SpotifyService>(calendars, design, spotifyLoginData);
         builder.Services.RegisterLogging(loggingConfig);
 
         // Add services to the container.

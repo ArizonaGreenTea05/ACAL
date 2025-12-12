@@ -1,6 +1,9 @@
-﻿using CalendarView.Core.Models;
+﻿using System.Runtime.InteropServices;
+using CalendarView.Core.Models;
 using CalendarView.Core.ViewModels;
 using CalendarView.Services;
+using CalendarView.Services.Music.Interfaces;
+using CalendarView.Services.Music.Spotify;
 using CalendarView.Shared.Models;
 using CalendarView.Shared.Services;
 using Microsoft.Extensions.Configuration;
@@ -13,7 +16,7 @@ namespace CalendarView.Shared.Utils
 {
     public static class Initialization
     {
-        public static void LoadAppsettings(out Calendars calendars, out Design design, out LoggingConfig loggingConfig)
+        public static void LoadAppsettings(out Calendars calendars, out Design design, out LoggingConfig loggingConfig, out SpotifyServiceLoginData spotifyLoginData)
         {
             var appsettingsPaths = new[] { "../config/appsettings.json", "appsettings.json" };
             var path = appsettingsPaths.FirstOrDefault(File.Exists) ?? throw new FileNotFoundException("appsettings not found");
@@ -31,44 +34,56 @@ namespace CalendarView.Shared.Utils
 
             loggingConfig = new LoggingConfig();
             appsettings.GetSection(nameof(LoggingConfig)).Bind(loggingConfig);
+
+            spotifyLoginData = new SpotifyServiceLoginData();
+            appsettings.GetSection(nameof(SpotifyServiceLoginData)).Bind(spotifyLoginData);
         }
 
-        public static void RegisterServices<TFormFactor>(this IServiceCollection serviceCollection, Calendars calendars, Design design) where TFormFactor : class, IFormFactor
+        extension(IServiceCollection serviceCollection)
         {
-            serviceCollection.AddSingleton<IFormFactor, TFormFactor>();
-            serviceCollection.AddSingleton(calendars);
-            serviceCollection.AddSingleton(design);
-            serviceCollection.AddKeyedSingleton("PictureRefreshInterval", new Common.TimeSpan(TimeSpan.FromMinutes(design.ChangePictureAfterMinutes)));
-            serviceCollection.AddKeyedSingleton("PictureDirectory", design.PictureDirectory ?? string.Empty);
-            serviceCollection.AddSingleton<PictureService>();
-            serviceCollection.AddHttpClient<CalendarService>();
-            serviceCollection.AddSingleton<CalendarViewModel>();
-        }
-
-        public static void RegisterLogging(this IServiceCollection serviceCollection, LoggingConfig loggingConfig)
-        {
-            Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Debug()
-                .Enrich.FromLogContext()
-                .WriteTo.Debug(outputTemplate:
-                    "[{Level:u3}] [{SourceContext}] [{CallerMemberName}] {Message:lj}{NewLine}{Exception}")
-                .WriteTo.File(
-                    formatter: new SingleLineTextFormatter(loggingConfig.LoggingTemplate),
-                    path: loggingConfig.LoggingPath,
-                    restrictedToMinimumLevel: LogEventLevel.Debug,
-                    rollingInterval: RollingInterval.Day)
-                .WriteTo.File(
-                    formatter: new SingleLineTextFormatter(loggingConfig.LoggingTemplate),
-                    loggingConfig.FilteredLoggingPath,
-                    restrictedToMinimumLevel: LogEventLevel.Information,
-                    rollingInterval: RollingInterval.Day)
-                .CreateLogger();
-
-            serviceCollection.AddLogging(loggingBuilder =>
+            public void RegisterServices<TFormFactor, TMusicService>(Calendars calendars, Design design, IMusicServiceLoginData musicServiceLoginData) where TFormFactor : class, IFormFactor where TMusicService : class, IMusicService
             {
-                loggingBuilder.ClearProviders();
-                loggingBuilder.AddSerilog(Log.Logger, true);
-            });
+                var isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+                serviceCollection.AddSingleton<IFormFactor, TFormFactor>();
+                serviceCollection.AddSingleton(calendars);
+                serviceCollection.AddSingleton(design);
+                serviceCollection.AddSingleton(musicServiceLoginData);
+                serviceCollection.AddSingleton<IMusicService, TMusicService>();
+                serviceCollection.AddKeyedSingleton("PictureRefreshInterval", new Common.TimeSpan(TimeSpan.FromMinutes(design.ChangePictureAfterMinutes)));
+                serviceCollection.AddKeyedSingleton("PictureDirectory", design.PictureDirectory ?? string.Empty);
+                serviceCollection.AddKeyedSingleton("AppdataFolderPath", isWindows
+                    ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), nameof(CalendarView))
+                    : new[]{ "../config", "" }.FirstOrDefault(Directory.Exists) ?? string.Empty);
+                serviceCollection.AddSingleton<PictureService>();
+                serviceCollection.AddHttpClient<CalendarService>();
+                serviceCollection.AddSingleton<CalendarViewModel>();
+            }
+
+            public void RegisterLogging(LoggingConfig loggingConfig)
+            {
+                Log.Logger = new LoggerConfiguration()
+                    .MinimumLevel.Debug()
+                    .Enrich.FromLogContext()
+                    .WriteTo.Debug(outputTemplate:
+                        "[{Level:u3}] [{SourceContext}] [{CallerMemberName}] {Message:lj}{NewLine}{Exception}")
+                    .WriteTo.File(
+                        formatter: new SingleLineTextFormatter(loggingConfig.LoggingTemplate),
+                        path: loggingConfig.LoggingPath,
+                        restrictedToMinimumLevel: LogEventLevel.Debug,
+                        rollingInterval: RollingInterval.Day)
+                    .WriteTo.File(
+                        formatter: new SingleLineTextFormatter(loggingConfig.LoggingTemplate),
+                        loggingConfig.FilteredLoggingPath,
+                        restrictedToMinimumLevel: LogEventLevel.Information,
+                        rollingInterval: RollingInterval.Day)
+                    .CreateLogger();
+
+                serviceCollection.AddLogging(loggingBuilder =>
+                {
+                    loggingBuilder.ClearProviders();
+                    loggingBuilder.AddSerilog(Log.Logger, true);
+                });
+            }
         }
     }
 }

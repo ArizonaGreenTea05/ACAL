@@ -3,6 +3,8 @@
 @using System.Timers
 @using CalendarView.Core.ViewModels
 @using CalendarView.Services
+@using CalendarView.Services.Music.Interfaces
+@using CalendarView.Shared.Components
 @using CalendarView.Shared.Models
 @using CalendarView.Shared.Resources
 @using Common.UI.Extensions
@@ -14,6 +16,7 @@
 @inject ILogger<Agenda> Logger
 @inject PictureService PictureService
 @inject NavigationManager Navigation;
+@inject IMusicService MusicService;
 
 <PageTitle>Calendar</PageTitle>
 
@@ -89,19 +92,27 @@
 		@if (ShowImage)
 		{
 			<div class="menu side-image menu-overwrite" style="padding: 0px 20px 15px 0px; display: flex; flex-direction: column;">
-				<div>
-					@if (DifferentiatedDesign.ShowTime)
+				<div style="display: flex;">
+					@if (MusicService.CurrentTrack is not null)
 					{
-						<div style="width: fit-content; margin: 0px 0px 0px auto; padding: 0px;">
-							<a style="font-size: 80px">@_currentTimeString</a>
-						</div>
+						<MusicPlayer />
 					}
-					@if (DifferentiatedDesign.ShowDate)
-					{
-						<div style="width: fit-content; margin: 0px 0px 0px auto; padding: 0px;">
-							<a style="font-size: 19px">@_currentDateString</a>
-						</div>
-					}
+
+					<div style="flex: 1;">
+						@if (DifferentiatedDesign.ShowTime)
+						{
+							<div style="width: fit-content; margin: 0px 0px 0px auto; padding: 0px;">
+								<a style="font-size: 80px">@_currentTimeString</a>
+							</div>
+						}
+						@if (DifferentiatedDesign.ShowDate)
+						{
+							<div style="width: fit-content; margin: 0px 0px 0px auto; padding: 0px;">
+								<a style="font-size: 19px">@_currentDateString</a>
+							</div>
+						}
+					</div>
+
 				</div>
 				<div style="flex: 1;">
 				</div>
@@ -123,19 +134,26 @@
 		}
 		else
 		{
-			<div class="header" style="display: flex; flex-direction: row;">
-				<div>
-					@if (DifferentiatedDesign.ShowTime)
+			<div class="header" style="display: flex; flex-direction: column;">
+				<div style="display: flex;">
+					<div style="flex: 1;">
+						@if (DifferentiatedDesign.ShowTime)
+						{
+							<div style="width: fit-content; margin: 0px auto 0px 10px; padding: 0px;">
+								<a style="font-size: 80px">@_currentTimeString</a>
+							</div>
+						}
+						@if (DifferentiatedDesign.ShowDate)
+						{
+							<div style="width: fit-content; margin: 0px auto 10px 10px; padding: 0px;">
+								<a style="font-size: 19px">@_currentDateString</a>
+							</div>
+						}
+					</div>
+
+					@if (MusicService.CurrentTrack is not null)
 					{
-						<div style="width: fit-content; margin: 0px auto 0px 10px; padding: 0px;">
-							<a style="font-size: 80px">@_currentTimeString</a>
-						</div>
-					}
-					@if (DifferentiatedDesign.ShowDate)
-					{
-						<div style="width: fit-content; margin: 0px auto 10px 10px; padding: 0px;">
-							<a style="font-size: 19px">@_currentDateString</a>
-						</div>
+						<MusicPlayer />
 					}
 				</div>
 			</div>
@@ -323,6 +341,7 @@
 
 		_timeTimer.Start();
 		CalendarViewModel.StartRefreshTimer();
+		if (!MusicService.IsRunning) await MusicService.Start();
 
 		await InvokeAsync(StateHasChanged);
 		Logger.LogInformation("Finished initialization");

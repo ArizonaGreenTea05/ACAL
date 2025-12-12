@@ -1,0 +1,114 @@
+﻿@using CalendarView.Services.Music
+@using CalendarView.Services.Music.Interfaces
+@inject IMusicService MusicService;
+
+<style>
+	.now-playing-container {
+		background: #181818;
+		padding: 14px 18px;
+		border-radius: 14px;
+		color: white;
+		box-shadow: 0 4px 10px rgba(0,0,0,0.35);
+		flex: 0 0 auto;
+		height: fit-content;
+		width: auto;
+		min-width: 20%;
+		max-width: 50%;
+		margin: 20px;
+	}
+
+	.np-top {
+		display: flex;
+		align-items: center;
+		gap: 15px;
+		margin: 5px 5px 0px 5px;
+	}
+
+	.np-cover {
+		width: 60px;
+		height: 60px;
+		border-radius: 6px;
+		object-fit: cover;
+	}
+
+	.np-info {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.np-title {
+		font-size: 18px;
+		font-weight: 700;
+	}
+
+	.np-artists {
+		font-size: 14px;
+		color: #cccccc;
+	}
+
+	.np-state {
+		font-size: 20px;
+	}
+
+	.np-progress {
+		margin: 0px 5px 5px 5px;
+	}
+
+	.np-progress-bar {
+		width: 100%;
+		height: 6px;
+		background: #333;
+		border-radius: 3px;
+		overflow: hidden;
+	}
+
+	.np-progress-fill {
+		height: 6px;
+		background: #1db954;
+	}
+</style>
+
+<div class="now-playing-container">
+	<div class="np-top">
+		<img class="np-cover" src="@MusicService.CurrentTrack?.Cover?.Url" alt="Cover image" />
+
+		<div class="np-info">
+			<div class="np-title">@MusicService.CurrentTrack?.Name</div>
+
+			<div class="np-artists">@string.Join(", ", MusicService.CurrentTrack?.Artists.Select(a => a.Name) ?? [])</div>
+		</div>
+
+		<div class="np-state">
+			@switch (MusicService.PlayState)
+			{
+				case Enums.PlayState.Paused:
+					<i class="fa-solid fa-pause"></i>
+					break;
+				case Enums.PlayState.Playing:
+					<i class="fa-solid fa-play"></i>
+					break;
+				case Enums.PlayState.Unspecified:
+				default:
+					<i class="fa-solid fa-stop"></i>
+					break;
+			}
+		</div>
+	</div>
+
+	<div class="np-progress">
+		@{
+			var progress = MusicService.CurrentTrack?.ProgressInPercent ?? 0;
+		}
+		<progress style="width: 100%; margin: 0; height: 5px;" max="100" value="@progress">@progress%</progress>
+	</div>
+</div>
+
+@code {
+	protected override async Task OnInitializedAsync()
+	{
+		MusicService.SongChanged += async (_, _) => await InvokeAsync(StateHasChanged);
+		MusicService.PlayStateChanged += async (_, _) => await InvokeAsync(StateHasChanged);
+		if (!MusicService.IsRunning) await MusicService.Start();
+	}
+}

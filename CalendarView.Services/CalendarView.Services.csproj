@@ -3,10 +3,13 @@
   <ItemGroup>
     <PackageReference Include="Ical.Net" Version="5.1.2" />
     <PackageReference Include="MimeMapping" Version="3.1.0" />
+    <PackageReference Include="SpotifyAPI.Web" Version="7.2.1" />
+    <PackageReference Include="SpotifyAPI.Web.Auth" Version="7.2.1" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Common\Common.csproj" />
+    <ProjectReference Include="..\Spotify\Spotify.csproj" />
   </ItemGroup>
 
 </Project>

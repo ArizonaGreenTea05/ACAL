@@ -1,0 +1,6 @@
+{
+  "ClientId": "client-id",
+  "ClientSecret": "client-secret",
+  "CallbackUrl": "http://127.0.0.1:5000/callback",
+  "CallbackPort": 5000
+}

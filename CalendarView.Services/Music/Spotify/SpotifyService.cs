@@ -1,0 +1,131 @@
+﻿using CalendarView.Services.Music.Interfaces;
+using CalendarView.Services.Music.Models;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using SpotifyAPI.Web;
+using System.Timers;
+using Spotify;
+using Timer = System.Timers.Timer;
+
+namespace CalendarView.Services.Music.Spotify;
+
+public class SpotifyService : IMusicService
+{
+    public event EventHandler? SongChanged;
+
+    public event EventHandler? PlayStateChanged;
+
+    private readonly Timer _timer = new(5000);
+
+    private SpotifyClient? _spotifyClient = null;
+    private readonly string _appdataFolderPath;
+    private readonly ILogger<SpotifyService> _logger;
+
+    public Enums.PlayState PlayState { get; private set; } = Enums.PlayState.Unspecified;
+
+    public Track? CurrentTrack { get; private set; } = null;
+
+    public bool IsRunning => _spotifyClient is not null;
+
+    public IMusicServiceLoginData? LoginData
+    {
+        get => SpotifyLoginData;
+        set
+        {
+            if (value is not SpotifyServiceLoginData sld) throw new InvalidCastException($"{nameof(LoginData)} must be of type {nameof(SpotifyServiceLoginData)}");
+            SpotifyLoginData = sld;
+        }
+    }
+
+    public SpotifyServiceLoginData? SpotifyLoginData { get; set; }
+
+    public SpotifyService(IMusicServiceLoginData loginData, [FromKeyedServices("AppdataFolderPath")] string appdataFolderPath, ILogger<SpotifyService> logger)
+    {
+        LoginData = loginData;
+        _appdataFolderPath = appdataFolderPath;
+        _logger = logger;
+        _timer.Stop();
+        _timer.Elapsed += Timer_Elapsed;
+    }
+
+    private async void Timer_Elapsed(object? sender, ElapsedEventArgs e)
+    {
+        if (_spotifyClient is null) return;
+
+        try
+        {
+            if (await _spotifyClient.Player.GetCurrentlyPlaying(new PlayerCurrentlyPlayingRequest()) is not
+                CurrentlyPlaying playback) return;
+            UpdatePlayState(playback);
+            UpdateTrack(playback);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError("Exception was thrown when trying to fetch spotify data: {ex}", ex.Message);
+        }
+    }
+
+    private void UpdateTrack(CurrentlyPlaying playback)
+    {
+        Track? newTrack = null;
+
+        switch (playback?.Item)
+        {
+            case FullTrack track:
+            {
+                newTrack = new Track(track.Name)
+                {
+                    Artists = track.Artists.Select(a => new Artist(a.Name)).ToList(),
+                    Duration = TimeSpan.FromMilliseconds(track.DurationMs),
+                    Progress = TimeSpan.FromMilliseconds(playback.ProgressMs ?? 0),
+                    Cover = track.Album.Images.FirstOrDefault()
+                };
+                break;
+            }
+            case FullEpisode episode:
+            {
+                newTrack = new Track(episode.Name)
+                {
+                    Artists = [new Artist(episode.Show.Name)],
+                    Duration = TimeSpan.FromMilliseconds(episode.DurationMs),
+                    Progress = TimeSpan.FromMilliseconds(playback.ProgressMs ?? 0),
+                    Cover = episode.Images.FirstOrDefault()
+                };
+                break;
+            }
+            case null:
+                break;
+            default:
+                return;
+        }
+
+        newTrack ??= new Track("Unknown");
+        if (newTrack == CurrentTrack) return;
+        CurrentTrack = newTrack;
+        SongChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void UpdatePlayState(CurrentlyPlaying playback)
+    {
+        var newPlayState = playback.IsPlaying ? Enums.PlayState.Playing : Enums.PlayState.Paused;
+        if (newPlayState == PlayState) return;
+        PlayState = newPlayState;
+        PlayStateChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    public async Task<bool> Start()
+    {
+        if (SpotifyLoginData is null) throw new ArgumentNullException(nameof(SpotifyLoginData));
+        _spotifyClient = await Authentication.Login.LoginAsync(SpotifyLoginData, _appdataFolderPath);
+        if (_spotifyClient is null) return false;
+        _timer.Start();
+        return true;
+    }
+
+    public async Task<bool> Stop()
+    {
+        _timer.Stop();
+        _spotifyClient = null;
+        return true;
+    }
+}

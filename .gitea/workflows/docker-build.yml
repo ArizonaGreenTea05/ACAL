@@ -18,3 +18,15 @@ jobs:
         with:
           context: .
           file: CalendarView/CalendarView.Web/Dockerfile
+          tags: calenderview:latest
+          push: false
+          load: true
+
+      - name: Export image as TAR
+        run: docker save calenderview:latest -o calenderview.tar
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: calenderview-image
+          path: calenderview.tar

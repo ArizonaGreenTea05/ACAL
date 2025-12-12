@@ -9,6 +9,7 @@
 	  "CalendarView.Services/CalendarView.Services.csproj",
 	  "CalendarView.Core.Tests/CalendarView.Core.Tests.csproj",
 	  "Common.UI.Tests/Common.UI.Tests.csproj",
+	  "HelperProjects/SpotifyTokenHelper/SpotifyTokenHelper.csproj",
     ]
   }
 }
