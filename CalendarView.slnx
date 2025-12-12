@@ -9,7 +9,6 @@
   <Folder Name="/UI/">
     <Project Path="CalendarView/CalendarView.Shared/CalendarView.Shared.csproj" Id="9fd1b5e9-cc3e-4535-8a7e-2f7e2044e713" />
     <Project Path="CalendarView/CalendarView.Web/CalendarView.Web.csproj" Id="83165570-e7d7-4a5f-80a9-8e394101f723" />
-    <Project Path="CalendarView/CalendarView/CalendarView.csproj" Id="b78b35e9-8155-4be1-a9ab-8466d6fa7711" />
     <Project Path="Common.UI/Common.UI.csproj" Id="76c61d89-b0ee-4e94-a9f7-2a5b09aa5d98" />
   </Folder>
   <Project Path="CalendarView.Core/CalendarView.Core.csproj" />
