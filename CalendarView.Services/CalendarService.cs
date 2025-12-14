@@ -6,19 +6,23 @@ namespace CalendarView.Services;
 
 public class CalendarService(HttpClient httpClient, ILogger<CalendarService> logger)
 {
-    public async Task<List<CalendarEvent>> LoadEventsFromIcsAsync(string icsUrl)
+    public async Task<List<CalendarEvent>?> LoadEventsFromIcsAsync(string icsUrl, int maxTries = 1)
     {
-        try
+        for (var i = 0; i < maxTries; i++)
         {
-            var icsData = await httpClient.GetStringAsync(icsUrl);
-            var calendar = Calendar.Load(icsData);
-            logger.LogInformation("Loaded calendar from {url}", icsUrl);
-            return calendar?.Events.ToList() ?? [];
+            try
+            {
+                var icsData = await httpClient.GetStringAsync(icsUrl);
+                var calendar = Calendar.Load(icsData);
+                logger.LogInformation("Loaded calendar from {url}", icsUrl);
+                return calendar?.Events.ToList() ?? [];
+            }
+            catch (Exception ex)
+            {
+                logger.LogError("Failed to load calendar: {message}", ex.Message);
+            }
         }
-        catch (Exception ex)
-        {
-            logger.LogError("Failed to load calendar: {message}", ex.Message);
-            return [];
-        }
+        
+        return null;
     }
 }

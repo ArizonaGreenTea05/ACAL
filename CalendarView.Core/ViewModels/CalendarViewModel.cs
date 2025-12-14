@@ -21,6 +21,8 @@ public partial class CalendarViewModel(CalendarService calendarService, Calendar
     [ObservableProperty] private ObservableCollection<CalendarEvent> _events = [];
     [ObservableProperty] private ObservableCollection<Calendar> _calendars = [];
 
+    [ObservableProperty] private ObservableCollection<Notification> _notifications = [];
+
     public void StartRefreshTimer()
     {
         if (_refreshTimer is not null)
@@ -65,7 +67,16 @@ public partial class CalendarViewModel(CalendarService calendarService, Calendar
             else currentCalendar = fodCal;
             logger.LogDebug("Added calendar: {json}", JsonConvert.SerializeObject(currentCalendar));
 
-            foreach (var item in await calendarService.LoadEventsFromIcsAsync(calendar.Key))
+            var events = await calendarService.LoadEventsFromIcsAsync(calendar.Key, 4);
+
+            if (events is null)
+            {
+                var message = $"Failed to load events for calendar: {calendar.Value.CustomName ?? calendar.Key}";
+                logger.LogError(message);
+                Notifications.Add(new Notification(Enums.NotificationKind.Error, message));
+            }
+            
+            foreach (var item in events)
             {
                 if (item.Start is null || item.End is null)
                 {

@@ -22,6 +22,8 @@ public partial class Design : ObservableObject
     [ObservableProperty] private string? _pictureDirectory;
     [ObservableProperty] private double _changePictureAfterMinutes = 2;
     [ObservableProperty] private PageLayout _pageLayout;
+    [ObservableProperty] private long? _dismissNotificationsAfterSeconds = 1800;
+    [ObservableProperty] private int? _maxNotifications = null;
 
     public string? CustomSideImageOverlay
     {
