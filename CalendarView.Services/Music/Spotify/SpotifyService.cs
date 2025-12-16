@@ -48,9 +48,9 @@ public class SpotifyService : IMusicService
 
     public SpotifyService(IMusicServiceLoginData loginData, [FromKeyedServices("AppdataFolderPath")] string appdataFolderPath, ILogger<SpotifyService> logger)
     {
+        _logger = logger;
         LoginData = loginData;
         _appdataFolderPath = appdataFolderPath;
-        _logger = logger;
         _timer.Stop();
         _timer.Elapsed += Timer_Elapsed;
         _logger.LogDebug($"Initialized {nameof(SpotifyService)}");
