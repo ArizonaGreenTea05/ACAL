@@ -168,10 +168,10 @@ Before you begin, ensure you have the following installed:
         "LoggingPath": "logs/log.debug",
         "FilteredLoggingPath": "logs/log.information"
       },
-      "SpotifyServiceLoginData": { // You can get this part using the spotify helper attached to each release. You still have to define the CLIENT_ID and CLIENT_SECRET in the helper's SpotifyLoginData.json as well as configure it on https://developer.spotify.com/dashboard
+      "SpotifyServiceLoginData": {
         "ClientId": "CLIENT_ID",
         "ClientSecret": "CLIENT_SECRET",
-        "AuthToken": {
+        "AuthToken": { // You can get this part using the spotify helper attached to each release. You still have to define the CLIENT_ID and CLIENT_SECRET in the helper's SpotifyLoginData.json as well as configure it on https://developer.spotify.com/dashboard
           "AccessToken": "ACCESS_TOKEN",
           "RefreshToken": "REFRESH_TOKEN",
           "TokenType": "Bearer",

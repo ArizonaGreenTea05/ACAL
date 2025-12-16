@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using Spotify.Models;
 using SpotifyAPI.Web;
 using SpotifyAPI.Web.Auth;
@@ -15,15 +16,32 @@ public static class Authentication
             return token?.AccessToken is null ? null : new SpotifyClient(token.AccessToken);
         }
 
-        public static async Task<SpotifyClient?> LoginAsync(SpotifyDockerLoginData loginData, string appdataFolderPath)
+        public static async Task<SpotifyClient?> LoginAsync(SpotifyDockerLoginData loginData, string appdataFolderPath, ILogger? logger = null)
         {
             var tokenFilePath = Path.Combine(appdataFolderPath, "spotify_token.json");
-            var token = await LoadTokenAsync(tokenFilePath) ?? loginData.AuthToken;
-            if (token is null) return null;
+            logger?.LogDebug("Loading Spotify token from {tokenFilePath}", tokenFilePath);
+            var token = await LoadTokenAsync(tokenFilePath, logger) ?? loginData.AuthToken;
+            if (token is null)
+            {
+                logger?.LogError("Spotify token is null");
+                return null;
+            }
 
-            if (!TokenExpired(token)) return new SpotifyClient(token.AccessToken);
+            logger?.LogDebug("Current token is {token}", token.AccessToken);
+
+            if (!TokenExpired(token))
+            {
+                logger?.LogDebug("Returning token {token}", token.AccessToken);
+                return new SpotifyClient(token.AccessToken);
+            }
+
+            logger?.LogDebug("Token is expired. Refreshing token");
             token = await RefreshTokenAsync(loginData, token);
-            if (token is null) return null;
+            if (token is null)
+            {
+                logger?.LogError("Spotify token is null");
+                return null;
+            }
 
             await SaveTokenAsync(token, tokenFilePath);
 
@@ -117,11 +135,16 @@ public static class Authentication
         return DateTimeOffset.UtcNow >= expiresAt.AddHours(-1);
     }
 
-    private static async Task<SpotifyToken?> LoadTokenAsync(string tokenFilePath)
+    private static async Task<SpotifyToken?> LoadTokenAsync(string tokenFilePath, ILogger? logger = null)
     {
-        if (!File.Exists(tokenFilePath)) return null;
+        if (!File.Exists(tokenFilePath))
+        {
+            logger?.LogError("Spotify token file does not exist at {tokenFilePath}", tokenFilePath);
+            return null;
+        }
 
         var json = await File.ReadAllTextAsync(tokenFilePath);
+        logger?.LogDebug("Spotify token file found: {json}", json);
         return JsonConvert.DeserializeObject<SpotifyToken>(json);
     }
 

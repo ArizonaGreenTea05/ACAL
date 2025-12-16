@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SpotifyAPI.Web;
 using System.Timers;
+using Newtonsoft.Json;
 using Spotify;
 using Timer = System.Timers.Timer;
 
@@ -32,8 +33,14 @@ public class SpotifyService : IMusicService
         get => SpotifyLoginData;
         set
         {
-            if (value is not SpotifyServiceLoginData sld) throw new InvalidCastException($"{nameof(LoginData)} must be of type {nameof(SpotifyServiceLoginData)}");
+            _logger.LogDebug($"Setting {nameof(LoginData)}");
+            if (value is not SpotifyServiceLoginData sld)
+            {
+                _logger.LogError($"{nameof(LoginData)} is not {nameof(SpotifyServiceLoginData)}");
+                throw new InvalidCastException($"{nameof(LoginData)} must be of type {nameof(SpotifyServiceLoginData)}");
+            }
             SpotifyLoginData = sld;
+            _logger.LogDebug($"Set {nameof(LoginData)} to {{json}}", JsonConvert.SerializeObject(SpotifyLoginData));
         }
     }
 
@@ -41,21 +48,31 @@ public class SpotifyService : IMusicService
 
     public SpotifyService(IMusicServiceLoginData loginData, [FromKeyedServices("AppdataFolderPath")] string appdataFolderPath, ILogger<SpotifyService> logger)
     {
+        _logger = logger;
         LoginData = loginData;
         _appdataFolderPath = appdataFolderPath;
-        _logger = logger;
         _timer.Stop();
         _timer.Elapsed += Timer_Elapsed;
+        _logger.LogDebug($"Initialized {nameof(SpotifyService)}");
     }
 
     private async void Timer_Elapsed(object? sender, ElapsedEventArgs e)
     {
-        if (_spotifyClient is null) return;
+        _logger.LogDebug("Fetching spotify data");
+        if (_spotifyClient is null)
+        {
+            _logger.LogError($"{nameof(_spotifyClient)} is null");
+            return;
+        }
 
         try
         {
             if (await _spotifyClient.Player.GetCurrentlyPlaying(new PlayerCurrentlyPlayingRequest()) is not
-                CurrentlyPlaying playback) return;
+                CurrentlyPlaying playback)
+            {
+                _logger.LogError($"Currently playing song is not {nameof(CurrentlyPlaying)}");
+                return;
+            }
             UpdatePlayState(playback);
             UpdateTrack(playback);
         }
@@ -65,14 +82,16 @@ public class SpotifyService : IMusicService
         }
     }
 
-    private void UpdateTrack(CurrentlyPlaying playback)
+    private void UpdateTrack(CurrentlyPlaying? playback)
     {
+        _logger.LogDebug("Updating track");
         Track? newTrack = null;
 
         switch (playback?.Item)
         {
             case FullTrack track:
             {
+                _logger.LogDebug("Playback item is a track");
                 newTrack = new Track(track.Name)
                 {
                     Artists = track.Artists.Select(a => new Artist(a.Name)).ToList(),
@@ -84,7 +103,8 @@ public class SpotifyService : IMusicService
             }
             case FullEpisode episode:
             {
-                newTrack = new Track(episode.Name)
+                _logger.LogDebug("Playback item is an episode");
+                    newTrack = new Track(episode.Name)
                 {
                     Artists = [new Artist(episode.Show.Name)],
                     Duration = TimeSpan.FromMilliseconds(episode.DurationMs),
@@ -94,6 +114,7 @@ public class SpotifyService : IMusicService
                 break;
             }
             case null:
+                _logger.LogError("Playback item is null");
                 break;
             default:
                 return;
@@ -107,6 +128,7 @@ public class SpotifyService : IMusicService
 
     private void UpdatePlayState(CurrentlyPlaying playback)
     {
+        _logger.LogDebug("Updating play state");
         var newPlayState = playback.IsPlaying ? Enums.PlayState.Playing : Enums.PlayState.Paused;
         if (newPlayState == PlayState) return;
         PlayState = newPlayState;
@@ -115,9 +137,18 @@ public class SpotifyService : IMusicService
 
     public async Task<bool> Start()
     {
-        if (SpotifyLoginData is null) throw new ArgumentNullException(nameof(SpotifyLoginData));
-        _spotifyClient = await Authentication.Login.LoginAsync(SpotifyLoginData, _appdataFolderPath);
-        if (_spotifyClient is null) return false;
+        _logger.LogDebug("Starting spotify service");
+        if (SpotifyLoginData is null)
+        {
+            _logger.LogError($"{nameof(SpotifyLoginData)} is null");
+            throw new ArgumentNullException(nameof(SpotifyLoginData));
+        }
+        _spotifyClient = await Authentication.Login.LoginAsync(SpotifyLoginData, _appdataFolderPath, _logger);
+        if (_spotifyClient is null)
+        {
+            _logger.LogError($"{nameof(_spotifyClient)} is null");
+            return false;
+        }
         _timer.Start();
         return true;
     }
