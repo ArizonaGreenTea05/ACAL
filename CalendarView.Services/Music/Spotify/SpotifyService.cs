@@ -143,7 +143,7 @@ public class SpotifyService : IMusicService
             _logger.LogError($"{nameof(SpotifyLoginData)} is null");
             throw new ArgumentNullException(nameof(SpotifyLoginData));
         }
-        _spotifyClient = await Authentication.Login.LoginAsync(SpotifyLoginData, _appdataFolderPath);
+        _spotifyClient = await Authentication.Login.LoginAsync(SpotifyLoginData, _appdataFolderPath, _logger);
         if (_spotifyClient is null)
         {
             _logger.LogError($"{nameof(_spotifyClient)} is null");
