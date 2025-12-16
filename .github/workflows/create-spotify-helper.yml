@@ -30,7 +30,7 @@ jobs:
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: windows-self-contained-exe
+          name: spotify-helper-windows-self-contained-exe
           path: HelperProjects/SpotifyTokenHelper/bin/Release/net*/win-x64/publish/
 
       - name: Build self-contained Linux executable
@@ -40,5 +40,5 @@ jobs:
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: linux-self-contained
+          name: spotify-helper-linux-self-contained
           path: HelperProjects/SpotifyTokenHelper/bin/Release/net*/linux-x64/publish/
