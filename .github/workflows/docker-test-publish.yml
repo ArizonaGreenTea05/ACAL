@@ -1,8 +1,7 @@
-name: Publish Docker Image
+name: Publish Test Docker Image
 
 on:
-  release:
-    types: [published]
+  push
 
 jobs:
   build:
@@ -30,13 +29,15 @@ jobs:
       - name: Set up buildx builder
         run: docker buildx create --use
 
+      - name: Get short commit SHA
+        id: vars
+        run: echo "sha_short=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
           file: CalendarView/CalendarView.Web/Dockerfile
           push: true
-          tags: |
-            arizonagreentea0905/acal:${{ github.ref_name }}
-            arizonagreentea0905/acal:latest
+          tags: arizonagreentea0905/acal-test:${{ steps.vars.outputs.sha_short }}
           buildkit: true
