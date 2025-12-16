@@ -1,0 +1,57 @@
+﻿@using System.Globalization
+@using CalendarView.Shared.Models
+@using Microsoft.Extensions.Logging
+@using Timer = System.Timers.Timer
+@using Common.UI.Extensions
+@inject ILogger<TimeAndDate> Logger
+@inject Design Design
+
+<div style="flex: 1;">
+	@if (DifferentiatedDesign?.ShowTime ?? true)
+	{
+		<div style="width: fit-content; margin: @(SwapAlignment ? "0px 0px 0px auto" : "0px auto 0px 10px"); padding: 0px;">
+			<a style="font-size: 80px">@_currentTimeString</a>
+		</div>
+	}
+	@if (DifferentiatedDesign?.ShowDate ?? true)
+	{
+		<div style="width: fit-content; margin: @(SwapAlignment ? "0px 0px 0px auto" : "0px auto 10px 10px"); padding: 0px;">
+			<a style="font-size: 19px">@_currentDateString</a>
+		</div>
+	}
+</div>
+
+@code {
+	[Parameter] public RenderFragment? ChildContent { get; set; }
+
+	[Parameter] public DifferentiatedDesign? DifferentiatedDesign { get; set; }
+
+	[Parameter] public bool SwapAlignment { get; set; }
+
+	private CultureInfo CurrentCulture => new(Design.Language);
+
+	private Timer? _timeTimer;
+	private string _currentTimeString = DateTime.Now.ToShortTimeString();
+	private string _currentDateString = DateTime.Now.ToLongDateString();
+
+	protected override Task OnInitializedAsync()
+	{
+		if (_timeTimer is null)
+		{
+			_timeTimer = new Timer(TimeSpan.FromSeconds(10));
+			_timeTimer.Elapsed += async (_, _) =>
+			{
+				var currentTimeString = DateTime.Now.ToShortTimeString(Design?.ShortTimeFormat, CurrentCulture);
+				if (currentTimeString == _currentTimeString) return;
+				_currentTimeString = currentTimeString;
+				_currentDateString = DateTime.Now.ToLongDateString(Design?.LongDateFormat, CurrentCulture);
+				await InvokeAsync(StateHasChanged);
+				Logger.LogDebug("Time updated");
+			};
+
+			Logger.LogInformation("Initialized time timer");
+		}
+		_timeTimer.Start();
+		return Task.CompletedTask;
+	}
+}

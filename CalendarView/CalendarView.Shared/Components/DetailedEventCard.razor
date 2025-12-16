@@ -1,0 +1,62 @@
+﻿@using System.Drawing
+@using System.Globalization
+@using CalendarView.Core.Models
+@using CalendarView.Shared.Models
+@using CalendarView.Shared.Resources
+@using Common.UI.Extensions
+@inject Design Design
+
+<EventCard StripeColor="@StripeColor" BackgroundColor="@BackgroundColor" ForeColor="@ForeColor" Style="@Style">
+	<div class="grid-container" style="grid-template-columns: 100px 100%; padding: 2px; margin: 5px; border-radius: 10px;">
+		<div class="menu" style="text-align: left;">
+			@switch (Event)
+			{
+				case AllDayCalendarEvent:
+					<a style="color: @DimForeColor.ToHex(); font-size: 19px; font-weight: 600;">@Translations.ResourceManager.GetString(nameof(Translations.AllDay), CurrentCulture)</a>
+					break;
+				case DefaultCalendarEvent dEvent:
+					<a style="color: @DimForeColor.ToHex(); font-size: 19px; font-weight: 600;">
+						@dEvent.Start.ToShortTimeString(Design.ShortTimeFormat, CurrentCulture)
+					</a>
+					<br />
+					<a style="color: @DimForeColor.ToHex();">
+						@dEvent.End.ToShortTimeString(Design.ShortTimeFormat, CurrentCulture)
+					</a>
+					break;
+			}
+		</div>
+		<div class="content" style="text-align: left;">
+			<a style="text-align: left; color: @ForeColor.ToHex(); font-size: 19px; font-weight: 600;">@Event?.Name</a>
+			<br>
+			<a style="text-align: left; color: @DimForeColor.ToHex()">
+				@switch (Event)
+				{
+					case AllDayCalendarEvent adEvent:
+						@adEvent.Start.ToShortDateString(Design.ShortDateFormat, CurrentCulture)
+						@(adEvent.Start == adEvent.End ? "" : $"- {adEvent.End.ToShortDateString(Design.ShortDateFormat, CurrentCulture)}")
+						break;
+					case DefaultCalendarEvent dEvent:
+						@dEvent.Start.Date.ToShortDateString(Design.ShortDateFormat, CurrentCulture)
+						@(dEvent.Start.Date == dEvent.End.Date ? "" : $"- {dEvent.End.Date.ToShortDateString(Design.ShortDateFormat, CurrentCulture)}")
+						break;
+				}
+			</a>
+		</div>
+	</div>
+</EventCard>
+
+@code {
+	[Parameter] public string? Style { get; set; }
+
+	[Parameter] public Color StripeColor { get; set; }
+
+	[Parameter] public Color BackgroundColor { get; set; }
+
+	[Parameter] public Color ForeColor { get; set; }
+
+	[Parameter] public Color DimForeColor { get; set; }
+
+	[Parameter] public CalendarEvent? Event { get; set; }
+
+	private CultureInfo CurrentCulture => new(Design.Language);
+}

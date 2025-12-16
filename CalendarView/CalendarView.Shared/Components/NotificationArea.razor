@@ -75,10 +75,11 @@
 		}
 	}
 
-	protected override async Task OnInitializedAsync()
+	protected override Task OnInitializedAsync()
 	{
 		MaxNotifications = Design.MaxNotifications;
 		DismissNotificationsAfterSeconds = Design.DismissNotificationsAfterSeconds;
+		return Task.CompletedTask;
 	}
 
 }

@@ -1,0 +1,127 @@
+﻿@using CalendarView.Core.ViewModels
+@using CalendarView.Services.Music.Interfaces
+@using CalendarView.Shared.Models
+@inject CalendarViewModel CalendarViewModel
+@inject Design Design
+@inject IMusicService MusicService
+
+<style>
+	@@media screen and (orientation: portrait) {
+		.grid-container-overwrite {
+			grid-template-areas:
+				"header"
+				"@(DifferentiatedDesign is not null && DifferentiatedDesign.SwapPictureAndContentInPortrait ? "content" : "menu")"
+				"@(DifferentiatedDesign is not null && DifferentiatedDesign.SwapPictureAndContentInPortrait ? "menu" : "content")"
+				"footer";
+			grid-template-columns: 1fr;
+			grid-template-rows: @(DifferentiatedDesign is not null && DifferentiatedDesign.SwapPictureAndContentInPortrait ? $"0fr {ContentHeight}fr {ImageHeight}fr 0fr" : $"0fr {ImageHeight}fr {ContentHeight}fr 0fr");
+		}
+
+		.flow-grid-container {
+			grid-template-columns: auto auto;
+		}
+
+		.menu-overwrite {
+			height: 100%;
+		}
+	}
+
+	@@media screen and (orientation: landscape) {
+		.grid-container-overwrite {
+			grid-template-areas:
+				"header header"
+				"@(DifferentiatedDesign is not null && DifferentiatedDesign.SwapPictureAndContentInLandscape ? "content menu" : "menu content")"
+				"footer footer";
+			grid-template-columns: @(DifferentiatedDesign is not null && DifferentiatedDesign.SwapPictureAndContentInLandscape ? $"{ContentWidth}fr {ImageWidth}fr" : $"{ImageWidth}fr {ContentWidth}fr");
+		}
+
+		.flow-grid-container {
+			grid-template-columns: auto auto auto;
+		}
+
+		.menu-overwrite {
+			height: 100vh;
+		}
+	}
+
+	.grid-container-overwrite div.content-overwrite {
+		grid-area: content;
+		overflow-y: scroll;
+		overflow-x: hidden;
+		height: 100%;
+		padding: 10px;
+		margin: 0px;
+	}
+</style>
+
+<Background ShowBackgroundImage="@ShowBackgroundImage" DifferentiatedDesign="@DifferentiatedDesign">
+	<div class="grid-container @(ShowImage ? "grid-container-overwrite" : "")" style="margin: 0; padding: 0; height: 100vh; width: 100%; @(ShowImage ? "" : "grid-template-columns: 0fr 1fr;")">
+		@if (ShowImage)
+		{
+			<SideImage ShowImage="@ShowImage" DifferentiatedDesign="DifferentiatedDesign" class="menu menu-overwrite">
+				<div style="display: flex;">
+					@if (MusicService.CurrentTrack is not null)
+					{
+						<MusicPlayer />
+					}
+
+					<TimeAndDate SwapAlignment="@ShowImage" DifferentiatedDesign="@DifferentiatedDesign" />
+
+				</div>
+				<div style="flex: 1;">
+				</div>
+				@if (DifferentiatedDesign is not null && DifferentiatedDesign.ShowColorLegend)
+				{
+					<div style="align-content: end;">
+						<ColorLegend Calendars="@CalendarViewModel.Calendars" EventCardDimmingRatio="@Design.EventCardDimmingRatio" style="width: fit-content; margin-left: auto; margin-right: 0px;" />
+					</div>
+				}
+			</SideImage>
+		}
+		else
+		{
+			<div class="header" style="display: flex; flex-direction: column;">
+				<div style="display: flex;">
+
+					<TimeAndDate SwapAlignment="@ShowImage" DifferentiatedDesign="@DifferentiatedDesign" />
+
+					@if (MusicService.CurrentTrack is not null)
+					{
+						<MusicPlayer />
+					}
+				</div>
+			</div>
+
+			<div class="footer">
+				<div>
+					@if (DifferentiatedDesign is not null && DifferentiatedDesign.ShowColorLegend)
+					{
+						<ColorLegend Calendars="@CalendarViewModel.Calendars" EventCardDimmingRatio="@Design.EventCardDimmingRatio" Style="width: 100%; display: flex; flex-direction: row; margin: 2px;" />
+					}
+				</div>
+			</div>
+		}
+
+		<div class="content @(ShowImage ? "content-overwrite" : "")" style="padding: 0; @(ShowImage ? "" : "grid-area: content;	overflow-y: scroll; overflow-x: hidden; height: 100%; margin: 0px;")">
+			@ChildContent
+		</div>
+	</div>
+</Background>
+
+@code {
+	[Parameter] public RenderFragment? ChildContent { get; set; }
+
+	[Parameter] public bool ShowImage { get; set; }
+
+	[Parameter] public bool ShowBackgroundImage { get; set; }
+
+	[Parameter] public int ImageWidth { get; set; } = 2;
+
+	[Parameter] public int ContentWidth { get; set; } = 3;
+
+	[Parameter] public int ImageHeight { get; set; } = 1;
+
+	[Parameter] public int ContentHeight { get; set; } = 2;
+
+	[Parameter] public DifferentiatedDesign? DifferentiatedDesign { get; set; }
+}

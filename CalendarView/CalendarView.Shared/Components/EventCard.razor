@@ -1,0 +1,18 @@
+﻿@using System.Drawing
+@using Common.UI.Extensions
+
+<div class="event-card" style="background-color: @BackgroundColor.ToHex(); border-left-color: @StripeColor.ToHex(); color: @ForeColor.ToHex(); @(Style ?? string.Empty)">
+	@ChildContent
+</div>
+
+@code {
+	[Parameter] public RenderFragment? ChildContent { get; set; }
+
+	[Parameter] public string? Style { get; set; }
+
+	[Parameter] public Color StripeColor { get; set; }
+
+	[Parameter] public Color BackgroundColor { get; set; }
+
+	[Parameter] public Color ForeColor { get; set; }
+}
