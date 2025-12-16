@@ -28,7 +28,7 @@ jobs:
         run: dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true
 
       - name: Upload build artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: windows-self-contained-exe
           path: HelperProjects/SpotifyTokenHelper/bin/Release/net*/win-x64/publish/
@@ -38,7 +38,7 @@ jobs:
         run: dotnet publish -c Release -r linux-x64 --self-contained true /p:PublishSingleFile=true
 
       - name: Upload build artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: linux-self-contained
           path: HelperProjects/SpotifyTokenHelper/bin/Release/net*/linux-x64/publish/
