@@ -1,0 +1,23 @@
+﻿@using CalendarView.Core.Models
+@using Common.UI.Extensions
+@using Microsoft.Extensions.Logging
+@using static CalendarView.Shared.Utils.CommonFunctions;
+@inject ILogger<ColorLegend> Logger
+
+<div style="@(Style ?? string.Empty)">
+	@foreach (var calendar in GetCalendarsOrderedByColor(Calendars, EventCardDimmingRatio))
+	{
+		<EventCard BackgroundColor="@calendar.dimBackColor" StripeColor="@calendar.backColor" ForeColor="@calendar.foreColor" Style="margin: 3px; padding: 0px 5px; border-radius: 5px; border-left-width: 3px;">
+			@calendar.calendar.Name
+		</EventCard>
+		Logger.LogDebug("Added calendar '{name} with color {backColor}", calendar.calendar.Name, calendar.backColor.ToHex());
+	}
+</div>
+
+@code {
+	[Parameter] public string? Style { get; set; }
+
+	[Parameter] public IEnumerable<Calendar> Calendars { get; set; } = [];
+
+	[Parameter] public double EventCardDimmingRatio { get; set; }
+}

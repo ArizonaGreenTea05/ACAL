@@ -45,4 +45,17 @@ public static class CommonFunctions
             .Select((Calendar calendar, Color dimBackColor) (calendar) => (calendar, calendar.Color.GetDimColor(eventCardDimmingRatio)))
             .Select(calendar => (calendar.calendar, calendar.calendar.Color, calendar.dimBackColor, calendar.dimBackColor.GetForeColor()));
     }
+
+    private static readonly Dictionary<Calendar, (Color backColor, Color dimBackColor, Color foreColor, Color dimForeColor)> ColorsByCalendar = new();
+    public static (Color backColor, Color dimBackColor, Color foreColor, Color dimForeColor) GetColorsOfCalendar(CalendarEvent calendarEvent, double eventCardDimmingRatio)
+    {
+        if (ColorsByCalendar.TryGetValue(calendarEvent.Calendar, out var colors)) return colors;
+        colors.backColor = calendarEvent.Calendar.Color;
+        colors.dimBackColor = colors.backColor.GetDimColor(eventCardDimmingRatio);
+        colors.foreColor = colors.dimBackColor.GetForeColor();
+        colors.dimForeColor = colors.foreColor.GetDimColor(0.9);
+        ColorsByCalendar.Add(calendarEvent.Calendar, colors);
+
+        return colors;
+    }
 }

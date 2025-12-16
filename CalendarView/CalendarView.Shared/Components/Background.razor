@@ -1,0 +1,40 @@
+﻿@using CalendarView.Services
+@using CalendarView.Shared.Models
+@inject PictureService PictureService
+
+<style>
+	.background-image {
+		background-image:
+		@(DifferentiatedDesign?.CustomBackgroundImageOverlay ?? "radial-gradient(circle at center, rgba(0, 0, 0, 0.7) 40%, rgba(0, 0, 0, 0.8) 100%)"), url('@CurrentPictureUrl');
+		background-blend-mode: multiply;
+		background-repeat: no-repeat;
+		background-position: center;
+		background-size: cover;
+	}
+</style>
+
+<div class="@(ShowBackgroundImage ? "background-image" : "")" style="margin: 0px; padding: 0px; height: 100vh; width: 100%;">
+	<div style="margin: 0; padding: 0; height: 100vh; width: 100%; backdrop-filter: blur(@(DifferentiatedDesign?.CustomBackgroundImageBlur ?? "10px"));">
+		@ChildContent
+	</div>
+</div>
+
+@code {
+	[Parameter] public RenderFragment? ChildContent { get; set; }
+
+	[Parameter] public bool ShowBackgroundImage { get; set; }
+
+	[Parameter] public DifferentiatedDesign? DifferentiatedDesign { get; set; }
+
+	private string CurrentPictureUrl => PictureService.CurrentPictureBase64 is null ? string.Empty : $"data:image/jpeg;base64,{PictureService.CurrentPictureBase64}";
+
+	protected override Task OnInitializedAsync()
+	{
+		PictureService.PictureHasChanged += async (_, _) =>
+		{
+			if (ShowBackgroundImage) await InvokeAsync(StateHasChanged);
+		};
+		return Task.CompletedTask;
+	}
+
+}
