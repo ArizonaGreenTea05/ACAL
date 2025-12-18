@@ -124,4 +124,9 @@
 	[Parameter] public int ContentHeight { get; set; } = 2;
 
 	[Parameter] public DifferentiatedDesign? DifferentiatedDesign { get; set; }
+
+	protected override async Task OnInitializedAsync()
+	{
+		MusicService.SongChanged += async (_, _) => await InvokeAsync(StateHasChanged); // Remove / add music player when the song changes
+	}
 }
