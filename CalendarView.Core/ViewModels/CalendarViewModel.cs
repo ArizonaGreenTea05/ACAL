@@ -76,7 +76,7 @@ public partial class CalendarViewModel(CalendarService calendarService, Calendar
                 Notifications.Add(new Notification(Enums.NotificationKind.Error, message));
             }
             
-            foreach (var item in events)
+            foreach (var item in events ?? [])
             {
                 if (item.Start is null || item.End is null)
                 {

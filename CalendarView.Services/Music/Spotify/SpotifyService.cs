@@ -16,7 +16,9 @@ public class SpotifyService : IMusicService
 
     public event EventHandler? PlayStateChanged;
 
-    private readonly Timer _timer = new(5000);
+    private readonly Timer _timer = new(TimeSpan.FromSeconds(5));
+
+    private readonly Timer _loginRefreshTimer = new(TimeSpan.FromMinutes(30));
 
     private SpotifyClient? _spotifyClient = null;
     private readonly string _appdataFolderPath;
@@ -51,9 +53,17 @@ public class SpotifyService : IMusicService
         _logger = logger;
         LoginData = loginData;
         _appdataFolderPath = appdataFolderPath;
+        _loginRefreshTimer.Stop();
+        _loginRefreshTimer.Elapsed += LoginRefreshTimer_Elapsed;
         _timer.Stop();
         _timer.Elapsed += Timer_Elapsed;
         _logger.LogDebug($"Initialized {nameof(SpotifyService)}");
+    }
+
+    private async void LoginRefreshTimer_Elapsed(object? sender, ElapsedEventArgs e)
+    {
+        if (await Login()) return;
+        _logger.LogError("Login refresh failed");
     }
 
     private async void Timer_Elapsed(object? sender, ElapsedEventArgs e)
@@ -67,13 +77,15 @@ public class SpotifyService : IMusicService
 
         try
         {
-            if (await _spotifyClient.Player.GetCurrentlyPlaying(new PlayerCurrentlyPlayingRequest()) is not
-                CurrentlyPlaying playback)
+            var playback = (CurrentlyPlaying?)await _spotifyClient.Player.GetCurrentlyPlaying(new PlayerCurrentlyPlayingRequest());
+            if (playback is null)
             {
                 _logger.LogError($"Currently playing song is not {nameof(CurrentlyPlaying)}");
-                return;
             }
-            UpdatePlayState(playback);
+            else
+            {
+                UpdatePlayState(playback);
+            }
             UpdateTrack(playback);
         }
         catch (Exception ex)
@@ -120,7 +132,6 @@ public class SpotifyService : IMusicService
                 return;
         }
 
-        newTrack ??= new Track("Unknown");
         if (newTrack == CurrentTrack) return;
         CurrentTrack = newTrack;
         SongChanged?.Invoke(this, EventArgs.Empty);
@@ -138,24 +149,30 @@ public class SpotifyService : IMusicService
     public async Task<bool> Start()
     {
         _logger.LogDebug("Starting spotify service");
+        if (!await Login()) return false;
+        _timer.Start();
+        _loginRefreshTimer.Start();
+        return true;
+    }
+
+    private async Task<bool> Login()
+    {
         if (SpotifyLoginData is null)
         {
             _logger.LogError($"{nameof(SpotifyLoginData)} is null");
             throw new ArgumentNullException(nameof(SpotifyLoginData));
         }
-        _spotifyClient = await Authentication.Login.LoginAsync(SpotifyLoginData, _appdataFolderPath, _logger);
-        if (_spotifyClient is null)
-        {
-            _logger.LogError($"{nameof(_spotifyClient)} is null");
-            return false;
-        }
-        _timer.Start();
-        return true;
+        _spotifyClient = await Authentication.Login.LoginAsync(SpotifyLoginData, _appdataFolderPath, true, _logger);
+        if (_spotifyClient is not null) return true;
+        _logger.LogError($"{nameof(_spotifyClient)} is null");
+        return false;
+
     }
 
     public async Task<bool> Stop()
     {
         _timer.Stop();
+        _loginRefreshTimer.Stop();
         _spotifyClient = null;
         return true;
     }

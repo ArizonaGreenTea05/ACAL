@@ -16,11 +16,11 @@ public static class Authentication
             return token?.AccessToken is null ? null : new SpotifyClient(token.AccessToken);
         }
 
-        public static async Task<SpotifyClient?> LoginAsync(SpotifyDockerLoginData loginData, string appdataFolderPath, ILogger? logger = null)
+        public static async Task<SpotifyClient?> LoginAsync(SpotifyDockerLoginData loginData, string appdataFolderPath, bool preferSavedToken = true, ILogger? logger = null)
         {
             var tokenFilePath = Path.Combine(appdataFolderPath, "spotify_token.json");
             logger?.LogDebug("Loading Spotify token from {tokenFilePath}", tokenFilePath);
-            var token = await LoadTokenAsync(tokenFilePath, logger) ?? loginData.AuthToken;
+            var token = !preferSavedToken ? loginData.AuthToken : await LoadTokenAsync(tokenFilePath, logger) ?? loginData.AuthToken;
             if (token is null)
             {
                 logger?.LogError("Spotify token is null");
@@ -36,7 +36,7 @@ public static class Authentication
             }
 
             logger?.LogDebug("Token is expired. Refreshing token");
-            token = await RefreshTokenAsync(loginData, token);
+            token = await RefreshTokenAsync(loginData, token, logger);
             if (token is null)
             {
                 logger?.LogError("Spotify token is null");
@@ -100,7 +100,7 @@ public static class Authentication
         };
     }
 
-    private static async Task<SpotifyToken?> RefreshTokenAsync(SpotifyDockerLoginData loginData, SpotifyToken old)
+    private static async Task<SpotifyToken?> RefreshTokenAsync(SpotifyDockerLoginData loginData, SpotifyToken old, ILogger? logger = null)
     {
         if (string.IsNullOrEmpty(old.RefreshToken)
             || string.IsNullOrEmpty(loginData.ClientId)
@@ -123,8 +123,14 @@ public static class Authentication
                 CreatedAt = DateTime.Now,
             };
         }
-        catch
+        catch (APIException ex)
         {
+            logger?.LogError(ex, "Spotify refresh failed");
+            return null;
+        }
+        catch (Exception ex)
+        {
+            logger?.LogError(ex, "Spotify refresh failed");
             return null;
         }
     }
