@@ -88,7 +88,7 @@ Before you begin, ensure you have the following installed:
     ```
 
 3.  **Environment setup (if applicable)**
-    ACAL uses `appsettings.json` for configuration. For local development, you might use `appsettings.Development.json` for specific settings.
+    ACAL uses `appsettings.json` for configuration.
     ```json
     # Minimal appsettings.json for CalendarView project
     {
@@ -268,9 +268,6 @@ Configuration for the application is managed via `appsettings.json`.
 
 -   `appsettings.json`: Contains default production-ready configurations.
 
-### Environment Variables
-Sensitive information like API keys or database connection strings should ideally be managed using **User Secrets** during development or **Environment Variables** in production.
-
 ## 🔧 Development
 
 ### Available Scripts
@@ -336,7 +333,7 @@ The development setup is identical to the Quick Start instructions provided abov
 
 ## 📄 License
 
-This project is licensed under the [GNU General Public License v3.0](LICENSE) - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the [MIT License](LICENSE) - see the [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
