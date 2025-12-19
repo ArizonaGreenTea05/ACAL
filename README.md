@@ -12,6 +12,8 @@
 [![GitHub issues](https://img.shields.io/github/issues/ArizonaGreenTea05/ACAL?style=for-the-badge&logo=github)](https://github.com/ArizonaGreenTea05/ACAL/issues)
 [![GitHub license](https://img.shields.io/github/license/ArizonaGreenTea05/ACAL?style=for-the-badge)](LICENSE)
 
+<a href='https://ko-fi.com/X8X510BA5F' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi4.png?v=6' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
+
 **ACAL (_ACAL Calendar And Layout_) is a versatile and highly customizable web application designed to help users stay organized and enjoy their digital content. Display photos, manage your calendar, and integrate music all in one elegant interface.**
 
 <!-- T[Live Demo](https://demo-link.com) ODO: Add live demo link -->
