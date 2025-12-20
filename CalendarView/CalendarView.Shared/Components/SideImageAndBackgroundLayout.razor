@@ -68,14 +68,20 @@
 					<TimeAndDate SwapAlignment="@ShowImage" DifferentiatedDesign="@DifferentiatedDesign" />
 
 				</div>
-				<div style="flex: 1;">
-				</div>
-				@if (DifferentiatedDesign is not null && DifferentiatedDesign.ShowColorLegend)
-				{
-					<div style="align-content: end;">
-						<ColorLegend Calendars="@CalendarViewModel.Calendars" EventCardDimmingRatio="@Design.EventCardDimmingRatio" style="width: fit-content; margin-left: auto; margin-right: 0px;" />
+				<div style="flex: 1;"></div>
+				<div style="display: flex;">
+					<div style="flex: 0 0 auto; vertical-align: bottom; min-width: 20%; max-width: 55%; margin-left: 20px; display: flex; flex-direction: column; justify-content: flex-end;">
+						<TextDisplayField Title="Quote of the Day:" Text="It's popular fiction. It's like global warming or female ejaculation." AdditionalInfo="Healy from OITNB (Season1, 2013)" />
 					</div>
-				}
+
+					@if (DifferentiatedDesign is not null && DifferentiatedDesign.ShowColorLegend)
+					{
+						<div style="flex: 1; width: auto; min-width: 20%; max-width: 40%; margin-left: auto; margin-right: 0px;">
+							<ColorLegend Calendars="@CalendarViewModel.Calendars" EventCardDimmingRatio="@Design.EventCardDimmingRatio" Style="width: fit-content; margin-left: auto;"/>
+						</div>
+					}
+
+				</div>
 			</SideImage>
 		}
 		else
