@@ -4,6 +4,7 @@ using CalendarView.Core.ViewModels;
 using CalendarView.Services;
 using CalendarView.Services.Music.Interfaces;
 using CalendarView.Services.Music.Spotify;
+using CalendarView.Services.Text;
 using CalendarView.Shared.Models;
 using CalendarView.Shared.Services;
 using Microsoft.Extensions.Configuration;
@@ -51,10 +52,13 @@ namespace CalendarView.Shared.Utils
                 serviceCollection.AddSingleton<IMusicService, TMusicService>();
                 serviceCollection.AddKeyedSingleton("PictureRefreshInterval", new Common.TimeSpan(TimeSpan.FromMinutes(design.ChangePictureAfterMinutes)));
                 serviceCollection.AddKeyedSingleton("PictureDirectory", design.PictureDirectory ?? string.Empty);
+                serviceCollection.AddKeyedSingleton("TextRefreshInterval", new Common.TimeSpan(TimeSpan.FromMinutes(design.ChangeTextAfterMinutes)));
+                serviceCollection.AddKeyedSingleton("TextDirectory", design.TextDirectory ?? string.Empty);
                 serviceCollection.AddKeyedSingleton("AppdataFolderPath", isWindows
                     ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), nameof(CalendarView))
                     : new[]{ "../config", "" }.FirstOrDefault(Directory.Exists) ?? string.Empty);
                 serviceCollection.AddSingleton<PictureService>();
+                serviceCollection.AddSingleton<TextService>();
                 serviceCollection.AddHttpClient<CalendarService>();
                 serviceCollection.AddSingleton<CalendarViewModel>();
             }

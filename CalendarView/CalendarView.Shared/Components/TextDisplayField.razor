@@ -1,0 +1,29 @@
+﻿@using CalendarView.Services.Text
+@inject TextService TextService
+
+<div style="text-align: left; padding: 2px; @(Style ?? string.Empty)">
+	<a style="text-align: left; font-size: 22px; font-weight: 600;">
+		@((MarkupString)(TextService.CurrentItem?.Title ?? string.Empty))
+	</a>
+	<br>
+	<a style="text-align: left; font-size: 17px; font-weight: 500;">
+		@((MarkupString)(TextService.CurrentItem?.Text ?? string.Empty))
+	</a>
+	<br>
+	<a style="text-align: left; font-size: 12px;">
+		@((MarkupString)(TextService.CurrentItem?.AdditionalInfo ?? string.Empty))
+	</a>
+</div>
+
+@code {
+	[Parameter] public string? Style { get; set; }
+
+	protected override Task OnInitializedAsync()
+	{
+		TextService.ItemHasChanged += async (_, _) =>
+		{
+			await InvokeAsync(StateHasChanged);
+		};
+		return Task.CompletedTask;
+	}
+}
