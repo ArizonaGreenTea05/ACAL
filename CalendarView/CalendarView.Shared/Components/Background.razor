@@ -30,7 +30,7 @@
 
 	protected override Task OnInitializedAsync()
 	{
-		PictureService.PictureHasChanged += async (_, _) =>
+		PictureService.ItemHasChanged += async (_, _) =>
 		{
 			if (ShowBackgroundImage) await InvokeAsync(StateHasChanged);
 		};
