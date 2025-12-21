@@ -10,11 +10,28 @@ public class PictureService(
     ILogger<PictureService> logger)
     : RefreshService<string, PictureService>(refreshInterval, pictureDirectory, logger)
 {
-    public string? CurrentPictureBase64 => CurrentItem;
+    public string? CurrentPictureUrl => CurrentItem;
 
     protected override IEnumerable<string> GetItems(IEnumerable<string> files)
     {
-        return files.Where(f => MimeMapping.MimeUtility.GetMimeMapping(f).StartsWith("image/"))
-            .Select(f => Convert.ToBase64String(File.ReadAllBytes(f)));
+        var fileArray = files as string[] ?? files.ToArray();
+        return fileArray.Where(IsImage)
+            .Select(f =>
+                $"data:{MimeMapping.MimeUtility.GetMimeMapping(f)};base64,{Convert.ToBase64String(File.ReadAllBytes(f))}")
+            .Concat(fileArray.Where(IsVideo).Select(f =>
+                $"data:{MimeMapping.MimeUtility.GetMimeMapping(f)};base64,{Convert.ToBase64String(File.ReadAllBytes(f))}"));
+
+    }
+
+    private static bool IsImage(string filePath)
+    {
+        return MimeMapping.MimeUtility.GetMimeMapping(filePath).StartsWith("image/");
+    }
+
+    private static bool IsVideo(string filePath)
+    {
+        var mimeMapping = MimeMapping.MimeUtility.GetMimeMapping(filePath);
+        var fileExtension = Path.GetExtension(filePath).ToLowerInvariant();
+        return mimeMapping.StartsWith("video/") || fileExtension == ".mp4" || fileExtension == ".mkv";
     }
 }
