@@ -37,6 +37,12 @@ public static class CommonFunctions
         return ev.TotalStartTime.Date <= day && ev.TotalEndTime.Date >= day;
     }
 
+    public static bool IsVideo(string url) =>
+        url.StartsWith("data:video/", StringComparison.OrdinalIgnoreCase)
+        || url.StartsWith("data:application/mp4", StringComparison.OrdinalIgnoreCase)
+        || url.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase)
+        || url.EndsWith(".webm", StringComparison.OrdinalIgnoreCase);
+
     public static IEnumerable<(Calendar calendar, Color backColor, Color dimBackColor, Color foreColor)> GetCalendarsOrderedByColor(IEnumerable<Calendar> calendars, double eventCardDimmingRatio)
     {
         return calendars

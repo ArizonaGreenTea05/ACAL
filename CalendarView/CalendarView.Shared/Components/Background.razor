@@ -1,5 +1,6 @@
 ﻿@using CalendarView.Services
 @using CalendarView.Shared.Models
+@using static CalendarView.Shared.Utils.CommonFunctions
 @inject PictureService PictureService
 
 <style>
@@ -11,10 +12,28 @@
 		background-position: center;
 		background-size: cover;
 	}
+
+	.background-video {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		object-position: center;
+		z-index: 0;
+	}
 </style>
 
 <div class="@(ShowBackgroundImage ? "background-image" : "")" style="margin: 0px; padding: 0px; height: 100vh; width: 100%;">
-	<div style="margin: 0; padding: 0; height: 100vh; width: 100%; backdrop-filter: blur(@(DifferentiatedDesign?.CustomBackgroundImageBlur ?? "10px"));">
+	@if (IsVideo(CurrentPictureUrl))
+	{
+		<video class="background-video" autoplay muted loop playsinline>
+			<source src="@CurrentPictureUrl" />
+		</video>
+	}
+
+	<div style="margin: 0; padding: 0; z-index: 1; height: 100vh; width: 100%; backdrop-filter: blur(@(DifferentiatedDesign?.CustomBackgroundImageBlur ?? "10px"));">
 		@ChildContent
 	</div>
 </div>
@@ -26,7 +45,7 @@
 
 	[Parameter] public DifferentiatedDesign? DifferentiatedDesign { get; set; }
 
-	private string CurrentPictureUrl => PictureService.CurrentPictureBase64 is null ? string.Empty : $"data:image/jpeg;base64,{PictureService.CurrentPictureBase64}";
+	private string CurrentPictureUrl => PictureService.CurrentPictureUrl ?? string.Empty;
 
 	protected override Task OnInitializedAsync()
 	{
