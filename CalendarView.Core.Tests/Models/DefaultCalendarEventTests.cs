@@ -10,7 +10,7 @@ public sealed class DefaultCalendarEventTests
     {
         CalendarEvent calendarEvent = new DefaultCalendarEvent(new Calendar { Name = "Test" }, "test",
             new DateTime(new DateOnly(2000, 1, 1), new TimeOnly(5, 6, 7, 8)),
-            new DateTime(new DateOnly(2000, 1, 2), new TimeOnly(9, 8, 7, 6)));
+            new DateTime(new DateOnly(2000, 1, 2), new TimeOnly(9, 8, 7, 6)), "test loc");
 
         var defaultCalendarEvent = calendarEvent as DefaultCalendarEvent;
 
@@ -22,7 +22,7 @@ public sealed class DefaultCalendarEventTests
     {
         CalendarEvent calendarEvent = new DefaultCalendarEvent(new Calendar { Name = "Test" }, "test",
             new DateTime(new DateOnly(2000, 1, 1), new TimeOnly(5, 6, 7, 8)),
-            new DateTime(new DateOnly(2000, 1, 2), new TimeOnly(9, 8, 7, 6)));
+            new DateTime(new DateOnly(2000, 1, 2), new TimeOnly(9, 8, 7, 6)), "test loc");
 
         var defaultCalendarEvent = calendarEvent as DefaultCalendarEvent;
 
