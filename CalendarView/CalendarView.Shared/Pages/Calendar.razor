@@ -29,14 +29,14 @@
 
 				<div>
 					<div>
-						<a style="font-size: 40px; font-weight: 400;">@day.Day</a>
-						<a style="font-size: 30px; padding-left: 10px;">@currentDayName</a>
+						<span class="font-45" style="font-weight: 400;">@day.Day</span>
+						<span class="font-35" style="padding-left: 10px;">@currentDayName</span>
 					</div>
 
 					@if (todaysEvents.Count <= 0)
 					{
 						<div>
-							<a colspan="4">@Translations.ResourceManager.GetString(nameof(Translations.NoEvents), CurrentCulture)</a>
+							<span colspan="4">@Translations.ResourceManager.GetString(nameof(Translations.NoEvents), CurrentCulture)</span>
 						</div>
 					}
 

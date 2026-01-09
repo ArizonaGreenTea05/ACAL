@@ -10,13 +10,13 @@
 	@if (DifferentiatedDesign?.ShowTime ?? true)
 	{
 		<div style="width: fit-content; margin: @(SwapAlignment ? "0px 0px 0px auto" : "0px auto 0px 10px"); padding: 0px;">
-			<a style="font-size: 80px">@_currentTimeString</a>
+			<span class="font-75">@_currentTimeString</span>
 		</div>
 	}
 	@if (DifferentiatedDesign?.ShowDate ?? true)
 	{
 		<div style="width: fit-content; margin: @(SwapAlignment ? "0px 0px 0px auto" : "0px auto 10px 10px"); padding: 0px;">
-			<a style="font-size: 19px">@_currentDateString</a>
+			<span class="font-18">@_currentDateString</span>
 		</div>
 	}
 </div>

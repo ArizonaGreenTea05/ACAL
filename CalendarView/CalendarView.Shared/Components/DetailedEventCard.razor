@@ -7,28 +7,26 @@
 @inject Design Design
 
 <EventCard StripeColor="@StripeColor" BackgroundColor="@BackgroundColor" ForeColor="@ForeColor" Style="@Style">
-	<div class="grid-container" style="grid-template-columns: 100px 100%; padding: 2px; margin: 5px; border-radius: 10px;">
+	<div class="grid-container" style="grid-template-columns: clamp(30px, 8vmin, 200px) 100%; padding: 2px; margin: 5px; border-radius: 10px;">
 		<div class="menu" style="text-align: left;">
 			@switch (Event)
 			{
 				case AllDayCalendarEvent:
-					<a style="color: @DimForeColor.ToHex(); font-size: 19px; font-weight: 600;">@Translations.ResourceManager.GetString(nameof(Translations.AllDay), CurrentCulture)</a>
+					<div class="font-18" style="color: @DimForeColor.ToHex(); font-weight: 600;">@Translations.ResourceManager.GetString(nameof(Translations.AllDay), CurrentCulture)</div>
 					break;
 				case DefaultCalendarEvent dEvent:
-					<a style="color: @DimForeColor.ToHex(); font-size: 19px; font-weight: 600;">
+					<div class="font-18" style="color: @DimForeColor.ToHex(); font-weight: 600;">
 						@dEvent.Start.ToShortTimeString(Design.ShortTimeFormat, CurrentCulture)
-					</a>
-					<br />
-					<a style="color: @DimForeColor.ToHex();">
+					</div>
+					<div class="font-15" style="color: @DimForeColor.ToHex();">
 						@dEvent.End.ToShortTimeString(Design.ShortTimeFormat, CurrentCulture)
-					</a>
+					</div>
 					break;
 			}
 		</div>
 		<div class="content" style="text-align: left;">
-			<a style="text-align: left; color: @ForeColor.ToHex(); font-size: 19px; font-weight: 600;">@Event?.Name</a>
-			<br>
-			<a style="text-align: left; color: @DimForeColor.ToHex()">
+			<div class="font-18" style="text-align: left; color: @ForeColor.ToHex(); font-weight: 600;">@Event?.Name</div>
+			<div class="font-15" style="text-align: left; color: @DimForeColor.ToHex()">
 				@switch (Event)
 				{
 					case AllDayCalendarEvent adEvent:
@@ -40,7 +38,7 @@
 						@(dEvent.Start.Date == dEvent.End.Date ? "" : $"- {dEvent.End.Date.ToShortDateString(Design.ShortDateFormat, CurrentCulture)}")
 						break;
 				}
-			</a>
+			</div>
 		</div>
 	</div>
 </EventCard>
