@@ -27,8 +27,8 @@
     }
 
     .np-cover {
-        width: 60px;
-        height: 60px;
+        width: clamp(30px, 5.5vmin, 100px);
+        height: clamp(30px, 5.5vmin, 100px);
         border-radius: 6px;
         object-fit: cover;
     }
@@ -41,7 +41,6 @@
     }
 
     .np-title {
-        font-size: 18px;
         font-weight: 700;
         white-space: nowrap;
         overflow: hidden;
@@ -49,7 +48,6 @@
     }
 
     .np-artists {
-        font-size: 14px;
         color: #cccccc;
         white-space: nowrap;
         overflow: hidden;
@@ -57,7 +55,7 @@
     }
 
     .np-state {
-        font-size: 20px;
+
     }
 
     .np-progress {
@@ -83,12 +81,12 @@
 		<img class="np-cover" src="@MusicService.CurrentTrack?.Cover?.Url" alt="Cover image" />
 
 		<div class="np-info">
-			<div class="np-title">@MusicService.CurrentTrack?.Name</div>
+			<div class="np-title font-17">@MusicService.CurrentTrack?.Name</div>
 
-			<div class="np-artists">@string.Join(", ", MusicService.CurrentTrack?.Artists.Select(a => a.Name) ?? [])</div>
+			<div class="np-artists font-12">@string.Join(", ", MusicService.CurrentTrack?.Artists.Select(a => a.Name) ?? [])</div>
 		</div>
 
-		<div class="np-state">
+		<div class="np-state font-20">
 			@switch (MusicService.PlayState)
 			{
 				case Enums.PlayState.Paused:

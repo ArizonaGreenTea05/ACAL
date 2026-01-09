@@ -2,17 +2,15 @@
 @inject TextService TextService
 
 <div style="text-align: left; padding: 2px; @(Style ?? string.Empty)">
-	<a style="text-align: left; font-size: 22px; font-weight: 600;">
+	<div class="font-22" style="text-align: left; font-weight: 600;">
 		@((MarkupString)(TextService.CurrentItem?.Title ?? string.Empty))
-	</a>
-	<br>
-	<a style="text-align: left; font-size: 17px; font-weight: 500;">
+	</div>
+	<div class="font-17" style="text-align: left; font-weight: 500;">
 		@((MarkupString)(TextService.CurrentItem?.Text ?? string.Empty))
-	</a>
-	<br>
-	<a style="text-align: left; font-size: 12px;">
+	</div>
+	<div class="font-12" style="text-align: left;">
 		@((MarkupString)(TextService.CurrentItem?.AdditionalInfo ?? string.Empty))
-	</a>
+	</div>
 </div>
 
 @code {
