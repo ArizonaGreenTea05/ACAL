@@ -1,0 +1,18 @@
+﻿<div style="height: 6px;
+			width: 100%;
+			background-color: @BackgroundColor;
+			border-radius: 999px;
+			overflow: hidden;">
+	<div style="height: 100%;
+	            width: @($"{Progress}%");
+	            background-color: @ForegroundColor;
+	            border-radius: 999px;
+	            transition: width 0.3s ease;">
+	</div>
+</div>
+
+@code {
+	[Parameter] public int Progress { get; set; }
+	[Parameter] public string BackgroundColor { get; set; } = "#333";
+	[Parameter] public string ForegroundColor { get; set; } = "#1db954";
+}

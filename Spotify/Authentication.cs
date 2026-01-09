@@ -72,7 +72,8 @@ public static class Authentication
             Scope =
             [
                 Scopes.UserReadCurrentlyPlaying,
-                Scopes.UserReadPlaybackState
+                Scopes.UserReadPlaybackState,
+                Scopes.UserModifyPlaybackState
             ]
         };
 

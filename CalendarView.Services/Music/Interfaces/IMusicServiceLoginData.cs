@@ -2,5 +2,5 @@
 
 public interface IMusicServiceLoginData
 {
-
+    bool CanControlPlayback { get; }
 }

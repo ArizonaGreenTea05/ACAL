@@ -68,6 +68,11 @@ public class SpotifyService : IMusicService
 
     private async void Timer_Elapsed(object? sender, ElapsedEventArgs e)
     {
+        await RefreshData();
+    }
+
+    private async Task RefreshData()
+    {
         _logger.LogDebug("Fetching spotify data");
         if (_spotifyClient is null)
         {
@@ -146,7 +151,7 @@ public class SpotifyService : IMusicService
         PlayStateChanged?.Invoke(this, EventArgs.Empty);
     }
 
-    public async Task<bool> Start()
+    public async Task<bool> StartService()
     {
         _logger.LogDebug("Starting spotify service");
         if (!await Login()) return false;
@@ -169,11 +174,86 @@ public class SpotifyService : IMusicService
 
     }
 
-    public async Task<bool> Stop()
+    public async Task<bool> StopService()
     {
         _timer.Stop();
         _loginRefreshTimer.Stop();
         _spotifyClient = null;
         return true;
+    }
+    public async Task<bool> Play()
+    {
+        if (!IsRunning
+            || _spotifyClient is null
+            || LoginData is null
+            || !LoginData.CanControlPlayback) return false;
+        try
+        {
+            var result = await _spotifyClient.Player.ResumePlayback();
+            await RefreshData();
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError("Exception was thrown when trying to resume playback: {ex}", ex.Message);
+            return false;
+        }
+    }
+
+    public async Task<bool> Pause()
+    {
+        if (!IsRunning
+            || _spotifyClient is null
+            || LoginData is null
+            || !LoginData.CanControlPlayback) return false;
+        try
+        {
+            var result = await _spotifyClient.Player.PausePlayback();
+            await RefreshData();
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError("Exception was thrown when trying to pause playback: {ex}", ex.Message);
+            return false;
+        }
+    }
+
+    public async Task<bool> Next()
+    {
+        if (!IsRunning
+            || _spotifyClient is null
+            || LoginData is null
+            || !LoginData.CanControlPlayback) return false;
+        try
+        {
+            var result = await _spotifyClient.Player.SkipNext();
+            await RefreshData();
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError("Exception was thrown when trying to skip next: {ex}", ex.Message);
+            return false;
+        }
+    }
+
+    public async Task<bool> Previous()
+    {
+        if (!IsRunning
+            || _spotifyClient is null
+            || LoginData is null
+            || !LoginData.CanControlPlayback) return false;
+        try
+        {
+            var result = await _spotifyClient.Player.SkipPrevious();
+            await RefreshData();
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError("Exception was thrown when trying to skip previous: {ex}", ex.Message);
+            return false;
+        }
     }
 }
