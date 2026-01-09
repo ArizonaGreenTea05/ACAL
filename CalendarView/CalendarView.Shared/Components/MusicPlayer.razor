@@ -1,6 +1,9 @@
-﻿@using CalendarView.Services.Music
-@using CalendarView.Services.Music.Interfaces
+﻿@using CalendarView.Services.Music.Interfaces
+@using CalendarView.Shared.Models
+@using Enums = CalendarView.Services.Music.Enums
 @inject IMusicService MusicService;
+@inject IMusicServiceLoginData MusicServiceLoginData
+@inject Design Design
 
 <style>
     .now-playing-container {
@@ -62,17 +65,20 @@
         margin: 0px 5px 5px 5px;
     }
 
-    .np-progress-bar {
-        width: 100%;
-        height: 6px;
-        background: #333;
-        border-radius: 3px;
-        overflow: hidden;
+    .player-controls {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
     }
 
-    .np-progress-fill {
-        height: 6px;
-        background: #1db954;
+    .player-controls i {
+        font-size: 1.8rem;
+        cursor: pointer;
+    }
+
+    .player-controls i:hover {
+        color: @Design.MusicPlayerAccentColor;
     }
 </style>
 
@@ -86,28 +92,54 @@
 			<div class="np-artists font-12">@string.Join(", ", MusicService.CurrentTrack?.Artists.Select(a => a.Name) ?? [])</div>
 		</div>
 
-		<div class="np-state font-20">
-			@switch (MusicService.PlayState)
-			{
-				case Enums.PlayState.Paused:
-					<i class="fa-solid fa-pause"></i>
-					break;
-				case Enums.PlayState.Playing:
-					<i class="fa-solid fa-play"></i>
-					break;
-				case Enums.PlayState.Unspecified:
-				default:
-					<i class="fa-solid fa-stop"></i>
-					break;
-			}
+        <div class="np-state font-@(MusicServiceLoginData.CanControlPlayback ? "14" : "20")">
+            @if (MusicServiceLoginData.CanControlPlayback)
+            {
+	            <div class="player-controls">
+		            <div>
+			            <i class="fa-solid fa-backward-step" @onclick="async () => await MusicService.Previous()"></i>
+		            </div>
+		            <div>
+			            @switch (MusicService.PlayState)
+			            {
+				            case Enums.PlayState.Playing:
+					            <i class="fa-solid fa-pause" @onclick="async () => await MusicService.Pause()"></i>
+					            break;
+				            case Enums.PlayState.Paused:
+					            <i class="fa-solid fa-play" @onclick="async () => await MusicService.Play()"></i>
+					            break;
+				            case Enums.PlayState.Unspecified:
+				            default:
+					            <i class="fa-solid fa-stop"></i>
+					            break;
+			            }
+		            </div>
+		            <div>
+			            <i class="fa-solid fa-forward-step" @onclick="async () => await MusicService.Next()"></i>
+		            </div>
+	            </div>
+            }
+            else
+            {
+	            @switch (MusicService.PlayState)
+	            {
+		            case Enums.PlayState.Paused:
+			            <i class="fa-solid fa-pause"></i>
+			            break;
+		            case Enums.PlayState.Playing:
+			            <i class="fa-solid fa-play"></i>
+			            break;
+		            case Enums.PlayState.Unspecified:
+		            default:
+			            <i class="fa-solid fa-stop"></i>
+			            break;
+	            }
+            }
 		</div>
 	</div>
 
 	<div class="np-progress">
-		@{
-			var progress = MusicService.CurrentTrack?.ProgressInPercent ?? 0;
-		}
-		<progress style="width: 100%; margin: 0; height: 5px;" max="100" value="@progress">@progress%</progress>
+        <ProgressBar Progress="@(MusicService.CurrentTrack?.ProgressInPercent ?? 0)" ForegroundColor="@Design.MusicPlayerAccentColor"></ProgressBar>
 	</div>
 </div>
 
@@ -116,6 +148,6 @@
 	{
 		MusicService.SongChanged += async (_, _) => await InvokeAsync(StateHasChanged);
 		MusicService.PlayStateChanged += async (_, _) => await InvokeAsync(StateHasChanged);
-		if (!MusicService.IsRunning) await MusicService.Start();
+		if (!MusicService.IsRunning) await MusicService.StartService();
 	}
 }

@@ -5,4 +5,5 @@ namespace CalendarView.Services.Music.Spotify;
 
 public class SpotifyServiceLoginData : SpotifyDockerLoginData, IMusicServiceLoginData
 {
+    public bool CanControlPlayback { get; set; }
 }

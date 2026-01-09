@@ -16,7 +16,15 @@ public interface IMusicService
 
     public bool IsRunning { get; }
 
-    public Task<bool> Start();
+    public Task<bool> Play();
 
-    public Task<bool> Stop();
+    public Task<bool> Pause();
+
+    public Task<bool> Next();
+
+    public Task<bool> Previous();
+
+    public Task<bool> StartService();
+
+    public Task<bool> StopService();
 }

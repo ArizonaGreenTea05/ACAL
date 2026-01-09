@@ -114,7 +114,7 @@
 		CalendarViewModel.RefreshedCalendars += async (_, _) => await InvokeAsync(StateHasChanged);
 
 		CalendarViewModel.StartRefreshTimer();
-		if (!MusicService.IsRunning) await MusicService.Start();
+		if (!MusicService.IsRunning) await MusicService.StartService();
 
 		await InvokeAsync(StateHasChanged);
 		Logger.LogInformation("Finished initialization");
