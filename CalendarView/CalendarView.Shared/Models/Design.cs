@@ -19,7 +19,7 @@ public partial class Design : ObservableObject
     [ObservableProperty] private string? _shortTimeFormat;
     [ObservableProperty] private string? _longMonthFormat;
     [ObservableProperty] private string? _longDayFormat;
-    [ObservableProperty] private string _musicPlayerAccentColor = "#1db954";
+    [ObservableProperty] private string _accentColor = "#1db954";
     [ObservableProperty] private string? _pictureDirectory;
     [ObservableProperty] private double _changePictureAfterMinutes = 2;
     [ObservableProperty] private string? _textDirectory;
