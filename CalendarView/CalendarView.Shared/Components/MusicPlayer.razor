@@ -78,7 +78,7 @@
     }
 
     .player-controls i:hover {
-        color: @Design.MusicPlayerAccentColor;
+                color: @Design.AccentColor;
     }
 </style>
 
@@ -139,7 +139,7 @@
 	</div>
 
 	<div class="np-progress">
-        <ProgressBar Progress="@(MusicService.CurrentTrack?.ProgressInPercent ?? 0)" ForegroundColor="@Design.MusicPlayerAccentColor"></ProgressBar>
+        <ProgressBar Progress="@(MusicService.CurrentTrack?.ProgressInPercent ?? 0)" ForegroundColor="@Design.AccentColor"></ProgressBar>
 	</div>
 </div>
 
