@@ -6,4 +6,5 @@ public partial class CalendarCustomization : ObservableObject
 {
     [ObservableProperty] private string? _color;
     [ObservableProperty] private string? _customName;
+    [ObservableProperty] private bool _showLocation;
 }

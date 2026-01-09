@@ -9,7 +9,7 @@ public sealed class AllDayCalendarEventTests
     public void TestStartTime()
     {
         CalendarEvent calendarEvent = new AllDayCalendarEvent(new Calendar { Name = "Test" }, "test",
-            new DateOnly(2000, 1, 1), new DateOnly(2000, 1, 2));
+            new DateOnly(2000, 1, 1), new DateOnly(2000, 1, 2), "test loc");
 
         var allDayCalendarEvent = calendarEvent as AllDayCalendarEvent;
 
@@ -20,7 +20,7 @@ public sealed class AllDayCalendarEventTests
     public void TestEndTime()
     {
         CalendarEvent calendarEvent = new AllDayCalendarEvent(new Calendar { Name = "Test" }, "test",
-            new DateOnly(2000, 1, 1), new DateOnly(2000, 1, 2));
+            new DateOnly(2000, 1, 1), new DateOnly(2000, 1, 2), "test loc");
 
         var allDayCalendarEvent = calendarEvent as AllDayCalendarEvent;
 

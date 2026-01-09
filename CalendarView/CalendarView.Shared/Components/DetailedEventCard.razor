@@ -9,35 +9,45 @@
 <EventCard StripeColor="@StripeColor" BackgroundColor="@BackgroundColor" ForeColor="@ForeColor" Style="@Style">
 	<div class="grid-container" style="grid-template-columns: clamp(30px, 8vmin, 200px) 100%; padding: 2px; margin: 5px; border-radius: 10px;">
 		<div class="menu" style="text-align: left;">
-			@switch (Event)
-			{
-				case AllDayCalendarEvent:
-					<div class="font-18" style="color: @DimForeColor.ToHex(); font-weight: 600;">@Translations.ResourceManager.GetString(nameof(Translations.AllDay), CurrentCulture)</div>
-					break;
-				case DefaultCalendarEvent dEvent:
-					<div class="font-18" style="color: @DimForeColor.ToHex(); font-weight: 600;">
-						@dEvent.Start.ToShortTimeString(Design.ShortTimeFormat, CurrentCulture)
-					</div>
-					<div class="font-15" style="color: @DimForeColor.ToHex();">
-						@dEvent.End.ToShortTimeString(Design.ShortTimeFormat, CurrentCulture)
-					</div>
-					break;
-			}
-		</div>
-		<div class="content" style="text-align: left;">
-			<div class="font-18" style="text-align: left; color: @ForeColor.ToHex(); font-weight: 600;">@Event?.Name</div>
-			<div class="font-15" style="text-align: left; color: @DimForeColor.ToHex()">
+			<div style="height: 100%; display: flex; flex-direction: column; justify-content: space-between; margin: 0; padding: 0;">
 				@switch (Event)
 				{
-					case AllDayCalendarEvent adEvent:
-						@adEvent.Start.ToShortDateString(Design.ShortDateFormat, CurrentCulture)
-						@(adEvent.Start == adEvent.End ? "" : $"- {adEvent.End.ToShortDateString(Design.ShortDateFormat, CurrentCulture)}")
+					case AllDayCalendarEvent:
+						<div class="font-18" style="color: @DimForeColor.ToHex(); font-weight: 600;">@Translations.ResourceManager.GetString(nameof(Translations.AllDay), CurrentCulture)</div>
 						break;
 					case DefaultCalendarEvent dEvent:
-						@dEvent.Start.Date.ToShortDateString(Design.ShortDateFormat, CurrentCulture)
-						@(dEvent.Start.Date == dEvent.End.Date ? "" : $"- {dEvent.End.Date.ToShortDateString(Design.ShortDateFormat, CurrentCulture)}")
+						<div class="font-18" style="color: @DimForeColor.ToHex(); font-weight: 600;">
+							@dEvent.Start.ToShortTimeString(Design.ShortTimeFormat, CurrentCulture)
+						</div>
+						<div class="font-15" style="color: @DimForeColor.ToHex();">
+							@dEvent.End.ToShortTimeString(Design.ShortTimeFormat, CurrentCulture)
+						</div>
 						break;
 				}
+			</div>
+		</div>
+		<div class="content" style="text-align: left;">
+			<div style="height: 100%; display: flex; flex-direction: column; justify-content: space-between; margin: 0; padding: 0;">
+				<div class="font-18" style="text-align: left; color: @ForeColor.ToHex(); font-weight: 600;">
+					@Event?.Name
+				</div>
+				@if ((Event?.Calendar.ShowLocation ?? false) && !string.IsNullOrWhiteSpace(Event?.Location))
+				{
+					<div class="font-12" style="margin-top: 0; text-align: left; color: @DimForeColor.ToHex()">@Event?.Location</div>
+				}
+				<div class="font-15" style="text-align: left; color: @DimForeColor.ToHex()">
+					@switch (Event)
+					{
+						case AllDayCalendarEvent adEvent:
+							@adEvent.Start.ToShortDateString(Design.ShortDateFormat, CurrentCulture)
+							@(adEvent.Start == adEvent.End ? "" : $"- {adEvent.End.ToShortDateString(Design.ShortDateFormat, CurrentCulture)}")
+							break;
+						case DefaultCalendarEvent dEvent:
+							@dEvent.Start.Date.ToShortDateString(Design.ShortDateFormat, CurrentCulture)
+							@(dEvent.Start.Date == dEvent.End.Date ? "" : $"- {dEvent.End.Date.ToShortDateString(Design.ShortDateFormat, CurrentCulture)}")
+							break;
+					}
+				</div>
 			</div>
 		</div>
 	</div>

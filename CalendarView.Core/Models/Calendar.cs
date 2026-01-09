@@ -7,6 +7,7 @@ public partial class Calendar : ObservableObject
 {
     [ObservableProperty] private string? _name;
     [ObservableProperty] private Color _color;
+    [ObservableProperty] private bool _showLocation;
 
     public static bool operator ==(Calendar left, Calendar right)
     {
@@ -20,6 +21,7 @@ public partial class Calendar : ObservableObject
     {
         if (obj is null) return false;
         return Name == obj.Name
-            && Color == obj.Color;
+            && Color == obj.Color
+            && ShowLocation == obj.ShowLocation;
     }
 }
