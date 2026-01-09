@@ -10,7 +10,7 @@ public partial class AllDayCalendarEvent : CalendarEvent
     public override DateTime TotalStartTime => Start.ToDateTime(TimeOnly.FromTimeSpan(TimeSpan.Zero));
     public override DateTime TotalEndTime => End.ToDateTime(TimeOnly.FromTimeSpan(TimeSpan.Zero)).AddDays(1).Subtract(TimeSpan.FromMinutes(1));
 
-    public AllDayCalendarEvent(Calendar calendar, string name, DateOnly start, DateOnly end) : base(calendar, name)
+    public AllDayCalendarEvent(Calendar calendar, string name, DateOnly start, DateOnly end, string? location) : base(calendar, name, location)
     {
         Start = start;
         End = end;
