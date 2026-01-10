@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
+    <RootNamespace>HelperProjects.AppsettingsEditor</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\CalendarView\CalendarView.Shared\CalendarView.Shared.csproj" />
+    <ProjectReference Include="..\..\CalendarView.Core\CalendarView.Core.csproj" />
+    <ProjectReference Include="..\..\CalendarView.Services\CalendarView.Services.csproj" />
+    <ProjectReference Include="..\..\Spotify\Spotify.csproj" />
+  </ItemGroup>
+
+</Project>

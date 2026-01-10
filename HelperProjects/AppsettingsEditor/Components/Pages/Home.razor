@@ -1,0 +1,448 @@
+﻿@page "/"
+@using HelperProjects.AppsettingsEditor.Models
+@using HelperProjects.AppsettingsEditor.Services
+@using Microsoft.AspNetCore.Components.Forms
+@using System.Text
+@inject AppSettingsService AppSettingsService
+@inject ILogger<Home> Logger
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Appsettings Editor</PageTitle>
+
+<div class="container-fluid mt-4">
+    <h1>CalendarView Appsettings Editor</h1>
+    <p class="lead">Upload, edit, and download your appsettings.json file with a user-friendly interface.</p>
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <strong>Error:</strong> @errorMessage
+            <button type="button" class="btn-close" @onclick="() => errorMessage = string.Empty"></button>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(successMessage))
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <strong>Success:</strong> @successMessage
+            <button type="button" class="btn-close" @onclick="() => successMessage = string.Empty"></button>
+        </div>
+    }
+
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>File Operations</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="fileUpload" class="form-label">Upload appsettings.json</label>
+                        <InputFile id="fileUpload" class="form-control" OnChange="HandleFileUpload" accept=".json" />
+                    </div>
+                    <button class="btn btn-success" @onclick="DownloadFile" disabled="@(currentSettings == null)">
+                        <i class="bi bi-download"></i> Download appsettings.json
+                    </button>
+                    <button class="btn btn-secondary ms-2" @onclick="LoadDefault">
+                        <i class="bi bi-file-earmark-plus"></i> Load Default Template
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (currentSettings != null)
+    {
+        <EditForm Model="currentSettings" OnValidSubmit="HandleValidSubmit">
+            <div class="row">
+                <!-- Authentication Section -->
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Authentication</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <InputCheckbox id="authEnabled" class="form-check-input" @bind-Value="currentSettings.AuthenticationConfig.Enabled" />
+                                    <label class="form-check-label" for="authEnabled">
+                                        Enable Authentication
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="username" class="form-label">Username</label>
+                                <InputText id="username" class="form-control" @bind-Value="currentSettings.AuthenticationConfig.Username" />
+                            </div>
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Password</label>
+                                <InputText id="password" type="password" class="form-control" @bind-Value="currentSettings.AuthenticationConfig.Password" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Editor Access Section -->
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Editor Access</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <InputCheckbox id="editorEnabled" class="form-check-input" @bind-Value="currentSettings.EditorConfig!.Enabled" />
+                                    <label class="form-check-label" for="editorEnabled">
+                                        Enable Editor in CalendarView.Web
+                                    </label>
+                                </div>
+                                <small class="form-text text-muted">When enabled, the editor will be accessible from CalendarView.Web</small>
+                            </div>
+                            <div class="mb-3">
+                                <label for="editorPath" class="form-label">Editor Path</label>
+                                <InputText id="editorPath" class="form-control" @bind-Value="currentSettings.EditorConfig!.Path" placeholder="/editor" />
+                                <small class="form-text text-muted">URL path where the editor will be available (e.g., /editor)</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Design Section -->
+                <div class="col-md-12 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Design Configuration</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="language" class="form-label">Language</label>
+                                    <InputText id="language" class="form-control" @bind-Value="currentSettings.Design.Language" placeholder="de" />
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="pageLayout" class="form-label">Page Layout</label>
+                                    <InputSelect id="pageLayout" class="form-select" @bind-Value="currentSettings.Design.PageLayout">
+                                        <option value="0">AgendaWithImage</option>
+                                        <option value="1">Agenda</option>
+                                        <option value="2">MonthView</option>
+                                    </InputSelect>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="pictureDirectory" class="form-label">Picture Directory</label>
+                                    <InputText id="pictureDirectory" class="form-control" @bind-Value="currentSettings.Design.PictureDirectory" placeholder="/" />
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="changePictureAfterMinutes" class="form-label">Change Picture After (minutes)</label>
+                                    <InputNumber id="changePictureAfterMinutes" class="form-control" @bind-Value="currentSettings.Design.ChangePictureAfterMinutes" />
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="background" class="form-label">Background Color</label>
+                                    <InputText id="background" type="color" class="form-control form-control-color" @bind-Value="currentSettings.Design.Background" />
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="foreColorName" class="form-label">Foreground Color Name</label>
+                                    <InputText id="foreColorName" class="form-control" @bind-Value="currentSettings.Design.ForeColorName" placeholder="LightGray" />
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <div class="form-check">
+                                        <InputCheckbox id="showDate" class="form-check-input" @bind-Value="currentSettings.Design.ShowDate" />
+                                        <label class="form-check-label" for="showDate">Show Date</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="form-check">
+                                        <InputCheckbox id="showTime" class="form-check-input" @bind-Value="currentSettings.Design.ShowTime" />
+                                        <label class="form-check-label" for="showTime">Show Time</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="form-check">
+                                        <InputCheckbox id="showColorLegend" class="form-check-input" @bind-Value="currentSettings.Design.ShowColorLegend" />
+                                        <label class="form-check-label" for="showColorLegend">Show Color Legend</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Calendars Section -->
+                <div class="col-md-12 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Calendar Definitions</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label for="refreshAfterMinutes" class="form-label">Refresh After (minutes)</label>
+                                <InputNumber id="refreshAfterMinutes" class="form-control" @bind-Value="currentSettings.Calendars.RefreshAfterMinutes" />
+                            </div>
+                            
+                            <h6>Calendar URLs</h6>
+                            @if (currentSettings.Calendars.Definitions != null && currentSettings.Calendars.Definitions.Any())
+                            {
+                                @foreach (var (url, index) in currentSettings.Calendars.Definitions.Select((kvp, i) => (kvp.Key, i)))
+                                {
+                                    var calendar = currentSettings.Calendars.Definitions[url];
+                                    <div class="card mb-2">
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="col-md-6 mb-2">
+                                                    <label class="form-label">Calendar URL</label>
+                                                    <input type="text" class="form-control" value="@url" readonly />
+                                                </div>
+                                                <div class="col-md-3 mb-2">
+                                                    <label class="form-label">Color</label>
+                                                    <InputText class="form-control" @bind-Value="calendar.Color" />
+                                                </div>
+                                                <div class="col-md-3 mb-2">
+                                                    <label class="form-label">Custom Name</label>
+                                                    <InputText class="form-control" @bind-Value="calendar.CustomName" />
+                                                </div>
+                                            </div>
+                                            <button type="button" class="btn btn-danger btn-sm" @onclick="() => RemoveCalendar(url)">
+                                                Remove
+                                            </button>
+                                        </div>
+                                    </div>
+                                }
+                            }
+                            
+                            <button type="button" class="btn btn-primary btn-sm" @onclick="ShowAddCalendarDialog">
+                                <i class="bi bi-plus-circle"></i> Add Calendar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Spotify Section -->
+                <div class="col-md-12 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Spotify Configuration</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="spotifyClientId" class="form-label">Client ID</label>
+                                    <InputText id="spotifyClientId" class="form-control" @bind-Value="currentSettings.SpotifyServiceLoginData.ClientId" placeholder="CLIENT_ID" />
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="spotifyClientSecret" class="form-label">Client Secret</label>
+                                    <InputText id="spotifyClientSecret" type="password" class="form-control" @bind-Value="currentSettings.SpotifyServiceLoginData.ClientSecret" placeholder="CLIENT_SECRET" />
+                                </div>
+                            </div>
+                            <div class="alert alert-info">
+                                <strong>Note:</strong> Spotify authentication tokens should be managed using the SpotifyTokenHelper tool.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Logging Section -->
+                <div class="col-md-12 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Logging Configuration</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label for="loggingPath" class="form-label">Debug Log Path</label>
+                                <InputText id="loggingPath" class="form-control" @bind-Value="currentSettings.LoggingConfig.LoggingPath" placeholder="logs/log.debug" />
+                            </div>
+                            <div class="mb-3">
+                                <label for="filteredLoggingPath" class="form-label">Information Log Path</label>
+                                <InputText id="filteredLoggingPath" class="form-control" @bind-Value="currentSettings.LoggingConfig.FilteredLoggingPath" placeholder="logs/log.information" />
+                            </div>
+                            <div class="mb-3">
+                                <label for="loggingTemplate" class="form-label">Logging Template</label>
+                                <InputTextArea id="loggingTemplate" class="form-control" rows="2" @bind-Value="currentSettings.LoggingConfig.LoggingTemplate" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-grid gap-2 mb-4">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="bi bi-check-circle"></i> Apply Changes
+                </button>
+            </div>
+        </EditForm>
+    }
+</div>
+
+<!-- Add Calendar Modal -->
+@if (showAddCalendarModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Calendar</h5>
+                    <button type="button" class="btn-close" @onclick="CloseAddCalendarDialog"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="newCalendarUrl" class="form-label">Calendar URL</label>
+                        <input type="text" id="newCalendarUrl" class="form-control" @bind="newCalendarUrl" placeholder="https://example.com/calendar.ics" />
+                        <small class="form-text text-muted">Use colons (:) in the URL - they will be converted to pipes (|) automatically</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="newCalendarColor" class="form-label">Color</label>
+                        <input type="text" id="newCalendarColor" class="form-control" @bind="newCalendarColor" placeholder="Aqua" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="newCalendarName" class="form-label">Custom Name</label>
+                        <input type="text" id="newCalendarName" class="form-control" @bind="newCalendarName" placeholder="My Calendar" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseAddCalendarDialog">Cancel</button>
+                    <button type="button" class="btn btn-primary" @onclick="AddCalendar">Add</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private AppSettingsModel? currentSettings;
+    private string errorMessage = string.Empty;
+    private string successMessage = string.Empty;
+    
+    private bool showAddCalendarModal = false;
+    private string newCalendarUrl = string.Empty;
+    private string newCalendarColor = string.Empty;
+    private string newCalendarName = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        LoadDefault();
+    }
+
+    private void LoadDefault()
+    {
+        currentSettings = new AppSettingsModel();
+        successMessage = "Default template loaded. You can now configure your settings.";
+        errorMessage = string.Empty;
+    }
+
+    private async Task HandleFileUpload(InputFileChangeEventArgs e)
+    {
+        try
+        {
+            var file = e.File;
+            if (file.ContentType != "application/json" && !file.Name.EndsWith(".json"))
+            {
+                errorMessage = "Please upload a valid JSON file.";
+                return;
+            }
+
+            using var stream = file.OpenReadStream(maxAllowedSize: 1024 * 1024); // 1MB max
+            using var reader = new StreamReader(stream);
+            var content = await reader.ReadToEndAsync();
+
+            if (!AppSettingsService.ValidateJson(content, out var validationError))
+            {
+                errorMessage = $"Invalid JSON: {validationError}";
+                return;
+            }
+
+            currentSettings = AppSettingsService.LoadFromJson(content);
+            successMessage = "File uploaded successfully!";
+            errorMessage = string.Empty;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error uploading file");
+            errorMessage = $"Error uploading file: {ex.Message}";
+            successMessage = string.Empty;
+        }
+    }
+
+    private void HandleValidSubmit()
+    {
+        successMessage = "Configuration updated successfully! Download the file to save changes.";
+        errorMessage = string.Empty;
+    }
+
+    private async Task DownloadFile()
+    {
+        if (currentSettings == null) return;
+
+        try
+        {
+            var json = AppSettingsService.SaveToJson(currentSettings);
+            var bytes = Encoding.UTF8.GetBytes(json);
+            var base64 = Convert.ToBase64String(bytes);
+            
+            await JSRuntime.InvokeVoidAsync("downloadFile", "appsettings.json", base64);
+            
+            successMessage = "File downloaded successfully!";
+            errorMessage = string.Empty;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error downloading file");
+            errorMessage = $"Error downloading file: {ex.Message}";
+            successMessage = string.Empty;
+        }
+    }
+
+    private void ShowAddCalendarDialog()
+    {
+        showAddCalendarModal = true;
+        newCalendarUrl = string.Empty;
+        newCalendarColor = string.Empty;
+        newCalendarName = string.Empty;
+    }
+
+    private void CloseAddCalendarDialog()
+    {
+        showAddCalendarModal = false;
+    }
+
+    private void AddCalendar()
+    {
+        if (string.IsNullOrWhiteSpace(newCalendarUrl))
+        {
+            errorMessage = "Calendar URL is required.";
+            return;
+        }
+
+        if (currentSettings?.Calendars.Definitions == null)
+        {
+            currentSettings = new AppSettingsModel();
+        }
+
+        var calendar = new CalendarView.Core.Models.CalendarCustomization
+        {
+            Color = newCalendarColor,
+            CustomName = newCalendarName
+        };
+
+        currentSettings.Calendars.Definitions[newCalendarUrl] = calendar;
+        
+        CloseAddCalendarDialog();
+        successMessage = "Calendar added successfully!";
+        errorMessage = string.Empty;
+    }
+
+    private void RemoveCalendar(string url)
+    {
+        if (currentSettings?.Calendars.Definitions != null)
+        {
+            currentSettings.Calendars.Definitions.Remove(url);
+            successMessage = "Calendar removed successfully!";
+            errorMessage = string.Empty;
+        }
+    }
+}
+
