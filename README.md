@@ -16,8 +16,8 @@
 
 **ACAL (_ACAL Calendar And Layout_) is a versatile and highly customizable web application designed to help users stay organized and enjoy their digital content. Display photos, manage your calendar, and integrate music all in one elegant interface.**
 
-<!-- T[Live Demo](https://demo-link.com) ODO: Add live demo link -->
-<!-- [Documentation](https://docs-link.com) TODO: Add documentation link -->
+<!-- [Live Demo](https://demo-link.com) TODO: Add live demo link -->
+[📚 Documentation](doc/README.md) | [🚀 Getting Started](doc/user/getting-started.md) | [⚙️ Configuration](doc/user/configuration.md) | [💻 Development Guide](doc/developer/development-guide.md)
 
 </div>
 
@@ -366,6 +366,24 @@ We welcome contributions to ACAL! If you're interested in improving the project,
 
 ### Development Setup for Contributors
 The development setup is identical to the Quick Start instructions provided above. Please ensure you have the .NET SDK and any relevant tools installed.
+
+For detailed development information, see the [Development Guide](doc/developer/development-guide.md).
+
+## 📚 Documentation
+
+Comprehensive documentation is available in the [doc](doc/) directory:
+
+### For Users
+-   **[Getting Started](doc/user/getting-started.md)** - Installation and first-time setup
+-   **[Configuration Guide](doc/user/configuration.md)** - Complete configuration reference
+-   **[User Interface Guide](doc/user/user-interface.md)** - Features and layout options
+-   **[Troubleshooting](doc/user/troubleshooting.md)** - Common issues and solutions
+
+### For Developers
+-   **[Architecture Overview](doc/developer/architecture.md)** - System design and structure
+-   **[Development Guide](doc/developer/development-guide.md)** - Setup and contribution workflow
+-   **[API Reference](doc/developer/api-reference.md)** - Services, models, and interfaces
+-   **[Deployment Guide](doc/developer/deployment.md)** - Production deployment instructions
 
 ## 📄 License
 
