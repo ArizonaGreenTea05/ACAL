@@ -71,16 +71,19 @@ public class BasicAuthenticationMiddleware
 
         var username = credentials[0];
         var password = credentials[1];
+        var safeUsername = username
+            .Replace("\r", string.Empty)
+            .Replace("\n", string.Empty);
 
         // Validate credentials
         if (username == _authConfig.Username && password == _authConfig.Password)
         {
-            _logger.LogDebug("Authentication successful for user: {Username}", username);
+            _logger.LogDebug("Authentication successful for user: {Username}", safeUsername);
             await _next(context);
         }
         else
         {
-            _logger.LogWarning("Authentication failed for user: {Username}", username);
+            _logger.LogWarning("Authentication failed for user: {Username}", safeUsername);
             await ReturnUnauthorizedResponse(context);
         }
     }
