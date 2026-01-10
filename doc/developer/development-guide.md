@@ -319,14 +319,14 @@ public class ExampleClass
     // 3. Instance fields
     private readonly ILogger<ExampleClass> _logger;
     
-    // 4. Constructors
+    // 4. Properties
+    public string Name { get; set; }
+    
+    // 5. Constructors
     public ExampleClass(ILogger<ExampleClass> logger)
     {
         _logger = logger;
     }
-    
-    // 5. Properties
-    public string Name { get; set; }
     
     // 6. Public methods
     public void DoSomething() { }

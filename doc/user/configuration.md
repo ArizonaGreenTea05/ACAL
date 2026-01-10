@@ -170,7 +170,7 @@ Display photos from a specified directory:
 - `ShowTime` - Display current time
 - `ShowColorLegend` - Show calendar color legend
 - `ShowScrollBar` - Show scrollbar (useful for long event lists)
-- `EventCardDimmingRatio` - Transparency of event cards (0.0 to 1.0)
+- `EventCardDimmingRatio` - Dimming ratio of event cards signature color (0.0 to 1.0)
 
 ### Date and Time Formatting
 
