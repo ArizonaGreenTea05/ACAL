@@ -1,19 +1,20 @@
 using CalendarView.Services.Music.Spotify;
 using CalendarView.Web.Components;
+using CalendarView.Web.Middleware;
 using CalendarView.Web.Services;
 using static CalendarView.Shared.Utils.Initialization;
 
-namespace CalendarView;
+namespace CalendarView.Web;
 
 public class Program
 {
     public static void Main(string[] args)
     {
-        LoadAppsettings(out var calendars, out var design, out var loggingConfig, out var spotifyLoginData);
+        LoadAppsettings(out var calendars, out var design, out var loggingConfig, out var spotifyLoginData, out var authenticationConfig);
 
         var builder = WebApplication.CreateBuilder(args);
 
-        builder.Services.RegisterServices<FormFactor, SpotifyService>(calendars, design, spotifyLoginData);
+        builder.Services.RegisterServices<FormFactor, SpotifyService>(calendars, design, spotifyLoginData, authenticationConfig);
         builder.Services.RegisterLogging(loggingConfig);
 
         // Add services to the container.
@@ -31,6 +32,9 @@ public class Program
         }
 
         app.UseHttpsRedirection();
+
+        // Add Basic Authentication middleware early in the pipeline
+        app.UseMiddleware<BasicAuthenticationMiddleware>();
 
         app.UseStaticFiles();
         app.UseAntiforgery();
