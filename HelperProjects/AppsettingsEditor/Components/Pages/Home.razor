@@ -1,7 +1,6 @@
-﻿@page "/"
+﻿@page "/editor"
 @using HelperProjects.AppsettingsEditor.Models
 @using HelperProjects.AppsettingsEditor.Services
-@using Microsoft.AspNetCore.Components.Forms
 @using Microsoft.Extensions.Logging
 @using System.Text
 @inject AppSettingsService AppSettingsService
@@ -11,8 +10,8 @@
 <PageTitle>Appsettings Editor</PageTitle>
 
 <div class="container-fluid mt-4">
-    <h1>CalendarView Appsettings Editor</h1>
-    <p class="lead">Upload, edit, and download your appsettings.json file with a user-friendly interface.</p>
+    <h1 style="color: whitesmoke;">CalendarView Appsettings Editor</h1>
+    <p class="lead" style="color: whitesmoke;">Upload, edit, and download your appsettings.json file with a user-friendly interface.</p>
 
     @if (!string.IsNullOrEmpty(errorMessage))
     {
@@ -92,17 +91,12 @@
                         <div class="card-body">
                             <div class="mb-3">
                                 <div class="form-check">
-                                    <InputCheckbox id="editorEnabled" class="form-check-input" @bind-Value="currentSettings.EditorConfig!.Enabled" />
+                                    <InputCheckbox id="editorEnabled" class="form-check-input" @bind-Value="currentSettings.EditorConfig.Enabled" />
                                     <label class="form-check-label" for="editorEnabled">
                                         Enable Editor in CalendarView.Web
                                     </label>
                                 </div>
                                 <small class="form-text text-muted">When enabled, the editor will be accessible from CalendarView.Web</small>
-                            </div>
-                            <div class="mb-3">
-                                <label for="editorPath" class="form-label">Editor Path</label>
-                                <InputText id="editorPath" class="form-control" @bind-Value="currentSettings.EditorConfig!.Path" placeholder="/editor" />
-                                <small class="form-text text-muted">URL path where the editor will be available (e.g., /editor)</small>
                             </div>
                         </div>
                     </div>
@@ -123,9 +117,10 @@
                                 <div class="col-md-6 mb-3">
                                     <label for="pageLayout" class="form-label">Page Layout</label>
                                     <InputSelect id="pageLayout" class="form-select" @bind-Value="currentSettings.Design.PageLayout">
-                                        <option value="0">AgendaWithImage</option>
-                                        <option value="1">Agenda</option>
-                                        <option value="2">MonthView</option>
+                                         @foreach (var item in Enum.GetValues<CalendarView.Shared.Models.Enums.PageLayout>())
+                                         {
+                                            <option value="@((int)item)">@item.ToString()</option>
+                                         }
                                     </InputSelect>
                                 </div>
                             </div>
@@ -186,7 +181,7 @@
                             </div>
                             
                             <h6>Calendar URLs</h6>
-                            @if (currentSettings.Calendars.Definitions != null && currentSettings.Calendars.Definitions.Any())
+                            @if (currentSettings.Calendars.Definitions.Any())
                             {
                                 @foreach (var (url, index) in currentSettings.Calendars.Definitions.Select((kvp, i) => (kvp.Key, i)))
                                 {

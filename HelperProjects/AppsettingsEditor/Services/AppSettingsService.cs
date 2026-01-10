@@ -1,5 +1,3 @@
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using HelperProjects.AppsettingsEditor.Models;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -20,14 +18,9 @@ public class AppSettingsService
     {
         try
         {
-            var settings = new JsonSerializerSettings
-            {
-                NullValueHandling = NullValueHandling.Ignore,
-                DefaultValueHandling = DefaultValueHandling.Populate
-            };
-            
-            var model = JsonConvert.DeserializeObject<AppSettingsModel>(jsonContent, settings);
-            return model ?? new AppSettingsModel();
+            var model = JsonConvert.DeserializeObject<AppSettingsModel>(jsonContent);
+            model ??= new AppSettingsModel();
+            return model;
         }
         catch (Exception ex)
         {

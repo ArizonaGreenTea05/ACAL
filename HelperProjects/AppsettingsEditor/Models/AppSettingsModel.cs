@@ -1,7 +1,6 @@
 using CalendarView.Core.Models;
 using CalendarView.Services.Music.Spotify;
 using CalendarView.Shared.Models;
-using Microsoft.Extensions.Logging;
 
 namespace HelperProjects.AppsettingsEditor.Models;
 
@@ -29,5 +28,4 @@ public class LoggingSection
 public class EditorConfig
 {
     public bool Enabled { get; set; } = false;
-    public string Path { get; set; } = "/editor";
 }

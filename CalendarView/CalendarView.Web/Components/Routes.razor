@@ -1,7 +1,7 @@
 @using CalendarView.Shared.Layout
 
 <Router AppAssembly="typeof(CalendarView.Shared.Layout.MainLayout).Assembly" 
-        AdditionalAssemblies="new[] { typeof(HelperProjects.AppsettingsEditor.Components.Pages.Home).Assembly, typeof(CalendarView.Web.Components.Pages.EditorPage).Assembly }">
+        AdditionalAssemblies="new[] { typeof(HelperProjects.AppsettingsEditor.Components.Pages.Home).Assembly }">
     <Found Context="routeData">
         <RouteView RouteData="routeData" DefaultLayout="typeof(CalendarView.Shared.Layout.MainLayout)" />
         <FocusOnNavigate RouteData="routeData" Selector="h1" />
