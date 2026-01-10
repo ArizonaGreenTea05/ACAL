@@ -2,6 +2,7 @@ using CalendarView.Services.Music.Spotify;
 using CalendarView.Web.Components;
 using CalendarView.Web.Middleware;
 using CalendarView.Web.Services;
+using HelperProjects.AppsettingsEditor.Services;
 using static CalendarView.Shared.Utils.Initialization;
 
 namespace CalendarView.Web;
@@ -10,7 +11,7 @@ public class Program
 {
     public static void Main(string[] args)
     {
-        LoadAppsettings(out var calendars, out var design, out var loggingConfig, out var spotifyLoginData, out var authenticationConfig);
+        LoadAppsettings(out var calendars, out var design, out var loggingConfig, out var spotifyLoginData, out var authenticationConfig, out var editorConfig);
 
         var builder = WebApplication.CreateBuilder(args);
 
@@ -20,6 +21,10 @@ public class Program
         // Add services to the container.
         builder.Services.AddRazorComponents()
             .AddInteractiveServerComponents();
+
+        // Register EditorConfig and services
+        builder.Services.AddSingleton(editorConfig);
+        builder.Services.AddScoped<AppSettingsService>();
 
         var app = builder.Build();
 
@@ -41,7 +46,9 @@ public class Program
 
         app.MapRazorComponents<App>()
             .AddInteractiveServerRenderMode()
-            .AddAdditionalAssemblies(typeof(CalendarView.Shared._Imports).Assembly);
+            .AddAdditionalAssemblies(
+                typeof(CalendarView.Shared._Imports).Assembly,
+                typeof(HelperProjects.AppsettingsEditor.Components._Imports).Assembly);
 
         app.Run();
     }

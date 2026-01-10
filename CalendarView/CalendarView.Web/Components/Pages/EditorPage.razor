@@ -1,0 +1,13 @@
+@page "/editor"
+@using HelperProjects.AppsettingsEditor.Components.Pages
+@inject CalendarView.Shared.Models.EditorConfig EditorConfig
+
+@if (EditorConfig.Enabled)
+{
+    <Home />
+}
+else
+{
+    <h1>Editor Disabled</h1>
+    <p>The appsettings editor is currently disabled. To enable it, set EditorConfig.Enabled to true in appsettings.json.</p>
+}
