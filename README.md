@@ -16,8 +16,8 @@
 
 **ACAL (_ACAL Calendar And Layout_) is a versatile and highly customizable web application designed to help users stay organized and enjoy their digital content. Display photos, manage your calendar, and integrate music all in one elegant interface.**
 
-<!-- T[Live Demo](https://demo-link.com) ODO: Add live demo link -->
-<!-- [Documentation](https://docs-link.com) TODO: Add documentation link -->
+<!-- [Live Demo](https://demo-link.com) TODO: Add live demo link -->
+[📚 Documentation](doc/README.md) | [🚀 Getting Started](doc/user/getting-started.md) | [⚙️ Configuration](doc/user/configuration.md) | [💻 Development Guide](doc/developer/development-guide.md)
 
 </div>
 
@@ -66,306 +66,107 @@ ACAL provides a modern and adaptable solution for visualizing important events, 
 
 ## 🚀 Quick Start
 
-Follow these steps to get ACAL up and running on your local machine.
+### Docker (Recommended)
 
-### Prerequisites
-Before you begin, ensure you have the following installed:
--   **[.NET SDK](https://dotnet.microsoft.com/download)**: Version 10.0 or later (for Blazor Server development).
--   **[Git](https://git-scm.com/downloads)**: For cloning the repository.
--   **[Docker Desktop](https://www.docker.com/products/docker-desktop/)** (Optional): If you plan to run the application in a container.
+```bash
+docker run -d \
+  --name acal \
+  -p 5000:8080 \
+  -v ~/acal-config:/app/config \
+  -v ~/acal-images:/app/images \
+  arizonagreentea0905/acal:latest
+```
 
-### Installation
+### Manual Installation
 
-1.  **Clone the repository**
-    ```bash
-    git clone https://github.com/ArizonaGreenTea05/ACAL.git
-    cd ACAL
-    ```
+```bash
+git clone https://github.com/ArizonaGreenTea05/ACAL.git
+cd ACAL
+dotnet restore
+dotnet build
+dotnet run --project CalendarView/CalendarView.Web
+```
 
-2.  **Restore dependencies and build the solution**
-    Navigate to the root of the cloned repository where `CalendarView.slnx` is located.
-    ```bash
-    dotnet restore
-    dotnet build
-    ```
-
-3.  **Environment setup (if applicable)**
-    ACAL uses `appsettings.json` for configuration.
-    ```json
-    # Minimal appsettings.json for CalendarView project
-    {
-      "Logging": {
-        "LogLevel": {
-          "Default": "Information",
-          "Microsoft.AspNetCore": "Warning"
-        }
-      },
-      "AllowedHosts": "*",
-      "AuthenticationConfig": {
-        "Enabled": false,
-        "Username": "",
-        "Password": ""
-      },
-      "Design": {
-        "PageLayout": "AgendaWithImageAndBackground",
-        "LongDateFormat": "dddd, dd. MMMM yyyy",
-        "ShortDateFormat": "dd.MM.",
-        "ShortTimeFormat": "HH:mm",
-        "LongMonthFormat": "MMMM",
-        "LongDayFormat": "dddd"
-      },
-      "LoggingConfig": {
-        "LoggingTemplate": "| {Timestamp:HH:mm:ss:fff} | {Level:u3} | {SourceContext} | {CallerMemberName} | {Message:lj} | {CallerFilePath}:{CallerLineNumber} | {Exception} |",
-        "LoggingPath": "logs/log.debug",
-        "FilteredLoggingPath": "logs/log.information"
-      },
-      "Calendars": {
-        "RefreshAfterMinutes": 60,
-        "Definitions": {
-          // Colons have to be replaced with pipes, otherwise the json can not be deserialized correctly. So please use "https|//" instead of "https://"
-          "https|//ics.tools/Ferien/nordrhein-westfalen.ics": {
-            "Color": "#FFFD00",
-            "CustomName": "Holidays"
-          }
-        }
-      }
-    }
-    ```
-    
-    ```json
-    # Recommended appsettings.json for CalendarView project
-    {
-      "Logging": {
-        "LogLevel": {
-          "Default": "Information",
-          "Microsoft.AspNetCore": "Warning"
-        }
-      },
-      "AllowedHosts": "*",
-      "AuthenticationConfig": {
-        "Enabled": true,
-        "Username": "your-username",
-        "Password": "your-secure-password"
-      },
-      "Design": {
-        "Language": "en",
-        "PictureDirectory": "../images", // a folder mounted to the docker container as "images"
-        "ChangePictureAfterMinutes": 0.2,
-        "BackColorName": "#1c1c1c",
-        "ForeColorName": "LightGray",
-        "EventCardDimmingRatio": 0.3,
-        "SwapPictureAndContentInPortrait": false,
-        "SwapPictureAndContentInLandscape": false,
-        "ShowDate": true,
-        "ShowTime": true,
-        "ShowColorLegend": true,
-        "ShowScrollBar": false,
-        "PageLayout": "AgendaWithImageAndBackground",
-        "LongDateFormat": "dddd, dd. MMMM yyyy",
-        "ShortDateFormat": "dd.MM.",
-        "ShortTimeFormat": "HH:mm",
-        "LongMonthFormat": "MMMM",
-        "LongDayFormat": "dddd",
-        "Designs": { // Here you can specify design choices for specific layouts
-          "AgendaWithBackground": {
-            "CustomBackgroundImageBlur": "2px"
-          },
-          "CalendarWithBackground": {
-            "CustomBackgroundImageBlur": "2px"
-          }
-        }
-      },
-      "LoggingConfig": {
-        "LoggingTemplate": "| {Timestamp:HH:mm:ss:fff} | {Level:u3} | {SourceContext} | {CallerMemberName} | {Message:lj} | {CallerFilePath}:{CallerLineNumber} | {Exception} |",
-        "LoggingPath": "logs/log.debug",
-        "FilteredLoggingPath": "logs/log.information"
-      },
-      "SpotifyServiceLoginData": {
-        "ClientId": "CLIENT_ID",
-        "ClientSecret": "CLIENT_SECRET",
-        "AuthToken": { // You can get this part using the spotify helper attached to each release. You still have to define the CLIENT_ID and CLIENT_SECRET in the helper's SpotifyLoginData.json as well as configure it on https://developer.spotify.com/dashboard
-          "AccessToken": "ACCESS_TOKEN",
-          "RefreshToken": "REFRESH_TOKEN",
-          "TokenType": "Bearer",
-          "ExpiresIn": 3600,
-          "CreatedAt": "2025-12-12T13:35:45.5304927Z"
-        }
-      },
-      "Calendars": {
-        "RefreshAfterMinutes": 1,
-        "Definitions": {
-          // Colons have to be replaced with pipes, otherwise the json can not be deserialized correctly. So please use "https|//" instead of "https://"
-          "https|//www.example.com/default.ics": {
-            "Color": "#FF0000",
-            "CustomName": "Default"
-          },
-          "https|//www.example.com/tasks.ics": {
-            "Color": "#00FF00",
-            "CustomName": "Tasks"
-          },
-          "https|//www.example.com/free-time.ics": {
-            "Color": "#FF8000",
-            "CustomName": "Free time"
-          },
-          "https|//www.example.com/birthdays.ics": {
-            "Color": "#0000FF",
-            "CustomName": "Birthdays"
-          },
-          "https|//ics.tools/Ferien/nordrhein-westfalen.ics": {
-            "Color": "#FFFD00",
-            "CustomName": "Holidays"
-          },
-          "https|//ics.tools/Feiertage/nordrhein-westfalen.ics": {
-            "Color": "#FFFD00",
-            "CustomName": "Holidays"
-          }
-        }
-      }
-    }
-    ```
-
-4.  **Start development server**
-    To run the main Blazor application, navigate into the `CalendarView` project directory and run:
-    ```bash
-    cd CalendarView
-    dotnet run
-    ```
-    Alternatively, you can run the solution from the root:
-    ```bash
-    dotnet run --project CalendarView
-    ```
-
-5.  **Open your browser**
-    The application will typically start on `http://localhost:5000` (HTTP) and `https://localhost:5001` (HTTPS) by default. Check your console output for the exact URLs.
+📖 **For detailed installation instructions, see the [Getting Started Guide](doc/user/getting-started.md)**
 
 ## 📁 Project Structure
 
-```
-ACAL/
-├── .dockerignore              # Specifies files to ignore when building Docker images
-├── .github/                   # GitHub configuration
-├── .gitignore                 # Standard .NET Git ignore file
-├── CalendarView.Core.Tests/   # Unit/integration tests for core logic
-├── CalendarView.Core/         # Core business logic, models, and shared entities
-├── CalendarView.Services/     # Service layer for business operations and data access
-├── CalendarView.slnf          # Visual Studio Solution Filter
-├── CalendarView.slnx          # Visual Studio Solution file for the entire project
-├── CalendarView/              # The main Blazor Server application project
-│   ├── CalendarView.Shared/   # Shared Blazor components and layouts and pages
-│   │   ├── wwwroot/           # Static assets (CSS, JS, images)
-│   │   ├── Components/        # Custom components
-│   │   ├── Layout/            # Global layout and styles
-│   │   ├── Models/            # Classes needed for the UI
-│   │   ├── Pages/             # Page components
-│   │   ├── Resources/         # Resources needed for the UI
-│   │   ├── Utils/             # Utils needed for the UI
-│   │   └── _Imports.razor     # Global imports for all components
-│   └── CalendarView.Web/      # The main Blazor Server application project
-│       ├── appsettings.json   # Application configuration
-│       └── Program.cs         # Application entry point
-├── Common.UI.Tests/           # Unit/integration tests for common UI components
-├── Common.UI/                 # Reusable UI components for Blazor
-├── Common/                    # Shared utilities, helper classes, cross-cutting concerns
-├── Directory.Build.props      # Custom MSBuild properties for the solution
-├── HelperProjects/            # Auxiliary projects for specific functionalities
-├── LICENSE                    # Project license file (GPL-3.0)
-├── README.md                  # This README file
-└── Spotify/                   # Project specific to Spotify API integration
-```
+ACAL is organized into multiple projects for maintainability:
+
+-   **CalendarView.Web** - Main Blazor Server application
+-   **CalendarView.Shared** - Shared UI components and pages
+-   **CalendarView.Services** - Business logic and external services
+-   **CalendarView.Core** - Domain models and entities
+-   **Common** / **Common.UI** - Shared utilities
+-   **Spotify** - Spotify API integration
+
+📖 **For detailed architecture information, see the [Architecture Overview](doc/developer/architecture.md)**
 
 ## ⚙️ Configuration
 
-### Application Settings
-Configuration for the application is managed via `appsettings.json`.
+ACAL is configured via `appsettings.json` with support for:
 
--   `appsettings.json`: Contains default production-ready configurations.
+-   🔒 **Authentication** - HTTP Basic Auth with browser-native login
+-   🎨 **Design** - Layouts, colors, date/time formats
+-   📅 **Calendars** - Multiple ICS sources with custom colors
+-   🎵 **Spotify** - Music integration (Premium required)
 
-### Authentication
-ACAL supports HTTP Basic Authentication to protect access to the application. When enabled, users will be prompted to enter credentials using the browser's native login dialog.
-
-**Configuration:**
-To enable authentication, add the following section to your `appsettings.json`:
-
-```json
-"AuthenticationConfig": {
-  "Enabled": true,
-  "Username": "your-username",
-  "Password": "your-secure-password"
-}
-```
-
-**Features:**
-- **Browser Native Login Dialog**: When enabled, the browser will display its native authentication dialog
-- **Kiosk Device Support**: Credentials can be embedded in the URL for automatic login on kiosk devices (e.g., `http://username:password@your-server.com`)
-- **Zero Configuration Mode**: Set `Enabled` to `false` to disable authentication entirely
-
-**Security Notes:**
-- Use strong passwords for production environments
-- Consider using HTTPS to encrypt credentials in transit
-- When using Docker, mount your `appsettings.json` securely and ensure proper file permissions
+📖 **For complete configuration reference, see the [Configuration Guide](doc/user/configuration.md)**
 
 ## 🔧 Development
 
-### Available Scripts
-The primary commands for development are executed using the .NET CLI:
-
-| Command                         | Description                               |
-|---------------------------------|-------------------------------------------|
-| `dotnet restore`                | Restores NuGet packages for all projects. |
-| `dotnet build`                  | Builds the entire solution.               |
-| `dotnet run --project [Project]`| Runs a specific project (e.g., `CalendarView`). |
-| `dotnet test`                   | Runs all tests in the solution.           |
-| `dotnet publish`                | Publishes the application for deployment. |
-
-### Development Workflow
-1.  **Code Changes**: Make changes within the relevant project directories (`CalendarView.Core`, `CalendarView.Services`, `CalendarView`, `Common.UI`, `Spotify`, `Common`).
-2.  **Build**: Use `dotnet build` to compile your changes.
-3.  **Run**: Use `dotnet run --project CalendarView` to test the application locally.
-4.  **Test**: Execute `dotnet test` to ensure all tests pass.
-
-## 🧪 Testing
-
-ACAL includes unit and integration tests to ensure reliability and correctness. Test projects are located in `CalendarView.Core.Tests` and `Common.UI.Tests`.
-
-To run all tests in the solution:
 ```bash
+# Clone and setup
+git clone https://github.com/ArizonaGreenTea05/ACAL.git
+cd ACAL
+dotnet restore
+dotnet build
+
+# Run tests
 dotnet test
+
+# Start development server
+dotnet run --project CalendarView/CalendarView.Web
 ```
+
+📖 **For detailed development setup, see the [Development Guide](doc/developer/development-guide.md)**
 
 ## 🚀 Deployment
 
-### Production Build
-To create a production-ready build of the `CalendarView` application:
-```bash
-cd CalendarView
-dotnet publish -c Release -o ../publish
-```
-This command will compile your application in Release mode and place the publishable output in the `publish` directory at the root level.
+-   **Docker** - Official image available at [`arizonagreentea0905/acal`](https://hub.docker.com/r/arizonagreentea0905/acal)
+-   **Traditional Hosting** - IIS, Nginx, Apache, or cloud platforms
 
-### Deployment Options
-
--   **Docker**: A Docker image is automatically pushed to [`arizonagreentea0905/acal`](https://hub.docker.com/r/arizonagreentea0905/acal) when a new release is created. For deployment the container only requires a folder mapped as "config" that contains the `appsettings.json` file.
--   **Traditional Hosting**: The `dotnet publish` output can be deployed to various hosting environments, including IIS on Windows, Apache/Nginx on Linux, or cloud services like Azure App Service, AWS Elastic Beanstalk, or shared hosting that supports .NET Core applications.
+📖 **For production deployment instructions, see the [Deployment Guide](doc/developer/deployment.md)**
 
 ## 🤝 Contributing
 
-We welcome contributions to ACAL! If you're interested in improving the project, please follow these guidelines:
+We welcome contributions! Here's how to get started:
 
-1.  **Fork the repository**.
-2.  **Create a new branch** for your feature or bug fix.
-    ```bash
-    git checkout -b feat/your-feature-name
-    ```
-3.  **Make your changes**, ensuring they adhere to the project's coding standards.
-4.  **Write and run tests** to cover your changes.
-5.  **Commit your changes** with a clear and descriptive commit message.
-6.  **Push your branch** to your forked repository.
-7.  **Open a Pull Request** to the `main` branch of this repository.
+1.  Fork the repository
+2.  Create a feature branch (`git checkout -b feat/your-feature-name`)
+3.  Make your changes and write tests
+4.  Commit with clear messages
+5.  Push and open a Pull Request
 
-**Note:** If you are interested in contributing to this project on a regular basis and/or improving it in the long term, you can request access to the YouTrack board so that we can collaborate as a team.
+📖 **For detailed contribution guidelines, see the [Development Guide](doc/developer/development-guide.md)**
 
-### Development Setup for Contributors
-The development setup is identical to the Quick Start instructions provided above. Please ensure you have the .NET SDK and any relevant tools installed.
+**Note:** Request access to our [YouTrack board](https://sugoi.youtrack.cloud/projects/ACAL/agiles/195-1/current) for regular collaboration.
+
+## 📚 Documentation
+
+Comprehensive documentation is available in the [doc](doc/) directory:
+
+### For Users
+-   **[Getting Started](doc/user/getting-started.md)** - Installation and first-time setup
+-   **[Configuration Guide](doc/user/configuration.md)** - Complete configuration reference
+-   **[User Interface Guide](doc/user/user-interface.md)** - Features and layout options
+-   **[Troubleshooting](doc/user/troubleshooting.md)** - Common issues and solutions
+
+### For Developers
+-   **[Architecture Overview](doc/developer/architecture.md)** - System design and structure
+-   **[Development Guide](doc/developer/development-guide.md)** - Setup and contribution workflow
+-   **[API Reference](doc/developer/api-reference.md)** - Services, models, and interfaces
+-   **[Deployment Guide](doc/developer/deployment.md)** - Production deployment instructions
 
 ## 📄 License
 
