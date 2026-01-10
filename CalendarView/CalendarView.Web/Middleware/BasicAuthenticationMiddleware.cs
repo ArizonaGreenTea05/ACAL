@@ -4,45 +4,34 @@ using System.Text;
 
 namespace CalendarView.Web.Middleware;
 
-public class BasicAuthenticationMiddleware
+public class BasicAuthenticationMiddleware(
+    RequestDelegate next,
+    AuthenticationConfig authConfig,
+    ILogger<BasicAuthenticationMiddleware> logger)
 {
-    private readonly RequestDelegate _next;
-    private readonly AuthenticationConfig _authConfig;
-    private readonly ILogger<BasicAuthenticationMiddleware> _logger;
-
-    public BasicAuthenticationMiddleware(
-        RequestDelegate next,
-        AuthenticationConfig authConfig,
-        ILogger<BasicAuthenticationMiddleware> logger)
-    {
-        _next = next;
-        _authConfig = authConfig;
-        _logger = logger;
-    }
-
     public async Task InvokeAsync(HttpContext context)
     {
         // Skip authentication if not enabled
-        if (!_authConfig.Enabled)
+        if (!authConfig.Enabled)
         {
-            await _next(context);
+            await next(context);
             return;
         }
 
         // Check for Authorization header
-        if (!context.Request.Headers.ContainsKey("Authorization"))
+        if (!context.Request.Headers.TryGetValue("Authorization", out var header))
         {
-            _logger.LogDebug("No Authorization header found, returning 401");
+            logger.LogDebug("No Authorization header found, returning 401");
             await ReturnUnauthorizedResponse(context);
             return;
         }
 
-        var authHeader = context.Request.Headers["Authorization"].ToString();
+        var authHeader = header.ToString();
 
         // Validate Basic authentication scheme
         if (!authHeader.StartsWith("Basic ", StringComparison.OrdinalIgnoreCase))
         {
-            _logger.LogWarning("Invalid authentication scheme: {Scheme}", authHeader.Split(' ')[0]);
+            logger.LogWarning("Invalid authentication scheme: {Scheme}", authHeader.Split(' ')[0]);
             await ReturnUnauthorizedResponse(context);
             return;
         }
@@ -56,7 +45,7 @@ public class BasicAuthenticationMiddleware
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to decode credentials");
+            logger.LogWarning(ex, "Failed to decode credentials");
             await ReturnUnauthorizedResponse(context);
             return;
         }
@@ -64,7 +53,7 @@ public class BasicAuthenticationMiddleware
         var credentials = decodedCredentials.Split(':', 2);
         if (credentials.Length != 2)
         {
-            _logger.LogWarning("Invalid credentials format");
+            logger.LogWarning("Invalid credentials format");
             await ReturnUnauthorizedResponse(context);
             return;
         }
@@ -76,14 +65,14 @@ public class BasicAuthenticationMiddleware
             .Replace("\n", string.Empty);
 
         // Validate credentials
-        if (username == _authConfig.Username && password == _authConfig.Password)
+        if (username == authConfig.Username && password == authConfig.Password)
         {
-            _logger.LogDebug("Authentication successful for user: {Username}", safeUsername);
-            await _next(context);
+            logger.LogDebug("Authentication successful for user: {Username}", safeUsername);
+            await next(context);
         }
         else
         {
-            _logger.LogWarning("Authentication failed for user: {Username}", safeUsername);
+            logger.LogWarning("Authentication failed for user: {Username}", safeUsername);
             await ReturnUnauthorizedResponse(context);
         }
     }

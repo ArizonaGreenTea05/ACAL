@@ -4,7 +4,7 @@ using CalendarView.Web.Middleware;
 using CalendarView.Web.Services;
 using static CalendarView.Shared.Utils.Initialization;
 
-namespace CalendarView;
+namespace CalendarView.Web;
 
 public class Program
 {
@@ -14,9 +14,8 @@ public class Program
 
         var builder = WebApplication.CreateBuilder(args);
 
-        builder.Services.RegisterServices<FormFactor, SpotifyService>(calendars, design, spotifyLoginData);
+        builder.Services.RegisterServices<FormFactor, SpotifyService>(calendars, design, spotifyLoginData, authenticationConfig);
         builder.Services.RegisterLogging(loggingConfig);
-        builder.Services.AddSingleton(authenticationConfig);
 
         // Add services to the container.
         builder.Services.AddRazorComponents()

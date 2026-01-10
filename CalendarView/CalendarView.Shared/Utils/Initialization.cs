@@ -45,7 +45,7 @@ namespace CalendarView.Shared.Utils
 
         extension(IServiceCollection serviceCollection)
         {
-            public void RegisterServices<TFormFactor, TMusicService>(Calendars calendars, Design design, IMusicServiceLoginData musicServiceLoginData) where TFormFactor : class, IFormFactor where TMusicService : class, IMusicService
+            public void RegisterServices<TFormFactor, TMusicService>(Calendars calendars, Design design, IMusicServiceLoginData musicServiceLoginData, AuthenticationConfig authenticationConfig) where TFormFactor : class, IFormFactor where TMusicService : class, IMusicService
             {
                 var isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
                 serviceCollection.AddSingleton<IFormFactor, TFormFactor>();
@@ -64,6 +64,7 @@ namespace CalendarView.Shared.Utils
                 serviceCollection.AddSingleton<TextService>();
                 serviceCollection.AddHttpClient<CalendarService>();
                 serviceCollection.AddSingleton<CalendarViewModel>();
+                serviceCollection.AddSingleton(authenticationConfig);
             }
 
             public void RegisterLogging(LoggingConfig loggingConfig)
