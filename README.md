@@ -101,6 +101,11 @@ Before you begin, ensure you have the following installed:
         }
       },
       "AllowedHosts": "*",
+      "AuthenticationConfig": {
+        "Enabled": false,
+        "Username": "",
+        "Password": ""
+      },
       "Design": {
         "PageLayout": "AgendaWithImageAndBackground",
         "LongDateFormat": "dddd, dd. MMMM yyyy",
@@ -137,6 +142,11 @@ Before you begin, ensure you have the following installed:
         }
       },
       "AllowedHosts": "*",
+      "AuthenticationConfig": {
+        "Enabled": true,
+        "Username": "your-username",
+        "Password": "your-secure-password"
+      },
       "Design": {
         "Language": "en",
         "PictureDirectory": "../images", // a folder mounted to the docker container as "images"
@@ -269,6 +279,30 @@ ACAL/
 Configuration for the application is managed via `appsettings.json`.
 
 -   `appsettings.json`: Contains default production-ready configurations.
+
+### Authentication
+ACAL supports HTTP Basic Authentication to protect access to the application. When enabled, users will be prompted to enter credentials using the browser's native login dialog.
+
+**Configuration:**
+To enable authentication, add the following section to your `appsettings.json`:
+
+```json
+"AuthenticationConfig": {
+  "Enabled": true,
+  "Username": "your-username",
+  "Password": "your-secure-password"
+}
+```
+
+**Features:**
+- **Browser Native Login Dialog**: When enabled, the browser will display its native authentication dialog
+- **Kiosk Device Support**: Credentials can be embedded in the URL for automatic login on kiosk devices (e.g., `http://username:password@your-server.com`)
+- **Zero Configuration Mode**: Set `Enabled` to `false` to disable authentication entirely
+
+**Security Notes:**
+- Use strong passwords for production environments
+- Consider using HTTPS to encrypt credentials in transit
+- When using Docker, mount your `appsettings.json` securely and ensure proper file permissions
 
 ## 🔧 Development
 
