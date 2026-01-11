@@ -1,4 +1,4 @@
-﻿@page "/editor"
+﻿@page "/"
 @using HelperProjects.AppsettingsEditor.Models
 @using HelperProjects.AppsettingsEditor.Services
 @using Microsoft.Extensions.Logging
@@ -119,7 +119,7 @@
                                     <InputSelect id="pageLayout" class="form-select" @bind-Value="currentSettings.Design.PageLayout">
                                          @foreach (var item in Enum.GetValues<CalendarView.Shared.Models.Enums.PageLayout>())
                                          {
-                                            <option value="@((int)item)">@item.ToString()</option>
+                                            <option value="@item">@item.ToString()</option>
                                          }
                                     </InputSelect>
                                 </div>
@@ -235,8 +235,29 @@
                                 </div>
                             </div>
                             <div class="alert alert-info">
-                                <strong>Note:</strong> Spotify authentication tokens should be managed using the SpotifyTokenHelper tool.
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>Note:</strong> Spotify authentication tokens can be generated using the button below.
+                                    </div>
+                                    <button type="button" class="btn btn-primary" @onclick="ShowSpotifyTokenHelper">
+                                        <i class="bi bi-key"></i> Get Spotify Token
+                                    </button>
+                                </div>
                             </div>
+                            @if (currentSettings.SpotifyServiceLoginData.AuthToken != null)
+                            {
+                                <div class="mt-3">
+                                    <h6>Current Token Information</h6>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <small class="text-muted">Access Token: @(currentSettings.SpotifyServiceLoginData.AuthToken.AccessToken?.Substring(0, Math.Min(20, currentSettings.SpotifyServiceLoginData.AuthToken.AccessToken.Length)))...</small>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <small class="text-muted">Created: @currentSettings.SpotifyServiceLoginData.AuthToken.CreatedAt.ToString("g")</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
                         </div>
                     </div>
                 </div>
@@ -308,6 +329,70 @@
     </div>
 }
 
+<!-- Spotify Token Helper Modal -->
+@if (showSpotifyTokenModal)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Spotify Token Helper</h5>
+                    <button type="button" class="btn-close" @onclick="CloseSpotifyTokenHelper"></button>
+                </div>
+                <div class="modal-body">
+                    @if (!string.IsNullOrEmpty(spotifyTokenError))
+                    {
+                        <div class="alert alert-danger">
+                            <strong>Error:</strong> @spotifyTokenError
+                        </div>
+                    }
+                    @if (!string.IsNullOrEmpty(spotifyTokenSuccess))
+                    {
+                        <div class="alert alert-success">
+                            <strong>Success:</strong> @spotifyTokenSuccess
+                        </div>
+                    }
+                    <div class="mb-3">
+                        <label for="spotifyCallbackUrl" class="form-label">Callback URL</label>
+                        <input type="text" id="spotifyCallbackUrl" class="form-control" @bind="spotifyCallbackUrl" placeholder="http://localhost:5000/callback" />
+                        <small class="form-text text-muted">Default: http://localhost:5000/callback</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="spotifyCallbackPort" class="form-label">Callback Port</label>
+                        <input type="number" id="spotifyCallbackPort" class="form-control" @bind="spotifyCallbackPort" placeholder="5000" />
+                        <small class="form-text text-muted">Default: 5000</small>
+                    </div>
+                    <div class="alert alert-info">
+                        <p><strong>Instructions:</strong></p>
+                        <ol>
+                            <li>Ensure you have configured Client ID and Client Secret above</li>
+                            <li>Set the Callback URL and Port (must match your Spotify app settings)</li>
+                            <li>Click "Generate Token" - this will open Spotify in your browser</li>
+                            <li>Log in and authorize the application</li>
+                            <li>The token will be automatically added to your configuration</li>
+                        </ol>
+                    </div>
+                    @if (isGeneratingToken)
+                    {
+                        <div class="text-center">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Generating token...</span>
+                            </div>
+                            <p class="mt-2">Waiting for Spotify authorization...</p>
+                        </div>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseSpotifyTokenHelper" disabled="@isGeneratingToken">Cancel</button>
+                    <button type="button" class="btn btn-primary" @onclick="GenerateSpotifyToken" disabled="@isGeneratingToken">
+                        <i class="bi bi-key"></i> Generate Token
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     private AppSettingsModel? currentSettings;
     private string errorMessage = string.Empty;
@@ -317,6 +402,13 @@
     private string newCalendarUrl = string.Empty;
     private string newCalendarColor = string.Empty;
     private string newCalendarName = string.Empty;
+
+    private bool showSpotifyTokenModal = false;
+    private string spotifyCallbackUrl = "http://localhost:5000/callback";
+    private int spotifyCallbackPort = 5000;
+    private bool isGeneratingToken = false;
+    private string spotifyTokenError = string.Empty;
+    private string spotifyTokenSuccess = string.Empty;
 
     protected override void OnInitialized()
     {
@@ -438,6 +530,77 @@
             currentSettings.Calendars.Definitions.Remove(url);
             successMessage = "Calendar removed successfully!";
             errorMessage = string.Empty;
+        }
+    }
+
+    private void ShowSpotifyTokenHelper()
+    {
+        showSpotifyTokenModal = true;
+        spotifyTokenError = string.Empty;
+        spotifyTokenSuccess = string.Empty;
+    }
+
+    private void CloseSpotifyTokenHelper()
+    {
+        showSpotifyTokenModal = false;
+        spotifyTokenError = string.Empty;
+        spotifyTokenSuccess = string.Empty;
+    }
+
+    private async Task GenerateSpotifyToken()
+    {
+        if (currentSettings == null) return;
+
+        spotifyTokenError = string.Empty;
+        spotifyTokenSuccess = string.Empty;
+
+        if (string.IsNullOrWhiteSpace(currentSettings.SpotifyServiceLoginData.ClientId))
+        {
+            spotifyTokenError = "Please enter a Client ID first.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(currentSettings.SpotifyServiceLoginData.ClientSecret))
+        {
+            spotifyTokenError = "Please enter a Client Secret first.";
+            return;
+        }
+
+        try
+        {
+            isGeneratingToken = true;
+            StateHasChanged();
+
+            var loginData = new Spotify.Models.SpotifyLoginData
+            {
+                ClientId = currentSettings.SpotifyServiceLoginData.ClientId,
+                ClientSecret = currentSettings.SpotifyServiceLoginData.ClientSecret,
+                CallbackUrl = spotifyCallbackUrl,
+                CallbackPort = spotifyCallbackPort
+            };
+
+            var token = await Spotify.Authentication.GetAuthTokenAsync(loginData);
+
+            if (token != null)
+            {
+                currentSettings.SpotifyServiceLoginData.AuthToken = token;
+                spotifyTokenSuccess = "Token generated successfully and added to configuration!";
+                successMessage = "Spotify token added successfully!";
+            }
+            else
+            {
+                spotifyTokenError = "Failed to generate token. Please check your credentials and try again.";
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error generating Spotify token");
+            spotifyTokenError = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            isGeneratingToken = false;
+            StateHasChanged();
         }
     }
 }
