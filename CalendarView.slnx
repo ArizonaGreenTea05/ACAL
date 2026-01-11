@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/HelperProjects/">
+    <Project Path="HelperProjects/AppsettingsEditor.Web/AppsettingsEditor.Web.csproj" />
     <Project Path="HelperProjects/AppsettingsEditor/AppsettingsEditor.csproj" />
     <Project Path="HelperProjects/SpotifyTokenHelper/SpotifyTokenHelper.csproj" Id="32f8f91c-f15a-4bb3-be2d-c730d582b1b5" />
   </Folder>
