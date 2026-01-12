@@ -65,13 +65,5 @@
 		return Task.CompletedTask;
 	}
 
-	protected override Task OnParametersSetAsync()
-	{
-		if (ShowBackgroundImage)
-		{
-			StateHasChanged();
-		}
-		return Task.CompletedTask;
-	}
 
 }
