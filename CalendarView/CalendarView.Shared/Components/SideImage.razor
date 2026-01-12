@@ -45,24 +45,53 @@
 
 	private string CurrentPictureUrl => PictureService.CurrentPictureUrl ?? string.Empty;
 
+	private string? _backgroundImageStyle;
+	private string _lastPictureUrl = string.Empty;
+	private string? _lastOverlay;
+	private string _lastStyle = string.Empty;
+
 	private string BackgroundImageStyle
 	{
 		get
 		{
-			if (string.IsNullOrWhiteSpace(CurrentPictureUrl))
+			var currentUrl = CurrentPictureUrl;
+			var currentStyle = Style ?? string.Empty;
+
+			string? overlay = null;
+			if (!string.IsNullOrWhiteSpace(currentUrl) &&
+			    currentUrl.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
 			{
-				return $"position: relative; overflow: hidden; padding: 0; {Style ?? string.Empty}";
+				overlay = DifferentiatedDesign?.CustomSideImageOverlay
+				          ?? "radial-gradient(circle at center, rgba(0, 0, 0, 0.2) 40%, rgba(0, 0, 0, 0.8) 100%)";
 			}
 
-			// Validate that URL is a data URI (from PictureService) for security
-			if (!CurrentPictureUrl.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
+			if (_backgroundImageStyle != null
+			    && string.Equals(_lastPictureUrl, currentUrl, StringComparison.Ordinal)
+			    && string.Equals(_lastStyle, currentStyle, StringComparison.Ordinal)
+			    && string.Equals(_lastOverlay, overlay, StringComparison.Ordinal))
 			{
-				return $"position: relative; overflow: hidden; padding: 0; {Style ?? string.Empty}";
+				return _backgroundImageStyle;
 			}
 
-			var overlay = DifferentiatedDesign?.CustomSideImageOverlay ?? "radial-gradient(circle at center, rgba(0, 0, 0, 0.2) 40%, rgba(0, 0, 0, 0.8) 100%)";
-			// Use single quotes in url() to avoid escaping issues with data URIs
-			return $"position: relative; overflow: hidden; background-image: {overlay}, url('{CurrentPictureUrl}'); background-blend-mode: multiply; background-repeat: no-repeat; background-position: center; background-size: cover; padding: 0; {Style ?? string.Empty}";
+			string result;
+
+			if (string.IsNullOrWhiteSpace(currentUrl) || overlay is null)
+			{
+				result = $"position: relative; overflow: hidden; padding: 0; {currentStyle}";
+			}
+			else
+			{
+				// Use single quotes in url() to avoid escaping issues with data URIs
+				result =
+					$"position: relative; overflow: hidden; background-image: {overlay}, url('{currentUrl}'); background-blend-mode: multiply; background-repeat: no-repeat; background-position: center; background-size: cover; padding: 0; {currentStyle}";
+			}
+
+			_backgroundImageStyle = result;
+			_lastPictureUrl = currentUrl;
+			_lastStyle = currentStyle;
+			_lastOverlay = overlay;
+
+			return result;
 		}
 	}
 
