@@ -17,7 +17,7 @@
 </style>
 
 <div class="@(Class ?? string.Empty)"
-	 style="position: relative; overflow: hidden; background-image: @(DifferentiatedDesign?.CustomSideImageOverlay ?? "radial-gradient(circle at center, rgba(0, 0, 0, 0.2) 40%, rgba(0, 0, 0, 0.8) 100%)"), url('@CurrentPictureUrl'); background-blend-mode: multiply; background-repeat: no-repeat; background-position: center; background-size: cover; padding: 0; @(Style ?? string.Empty)">
+	 style="position: relative; overflow: hidden; @SideImageStyle padding: 0; @(Style ?? string.Empty)">
 
 	@if (IsVideo(CurrentPictureUrl))
 	{
@@ -44,6 +44,8 @@
 	[Parameter] public DifferentiatedDesign? DifferentiatedDesign { get; set; }
 
 	private string CurrentPictureUrl => PictureService.CurrentPictureUrl ?? string.Empty;
+
+	private string SideImageStyle => $"background-image: {DifferentiatedDesign?.CustomSideImageOverlay ?? "radial-gradient(circle at center, rgba(0, 0, 0, 0.2) 40%, rgba(0, 0, 0, 0.8) 100%)"}, url('{CurrentPictureUrl}'); background-blend-mode: multiply; background-repeat: no-repeat; background-position: center; background-size: cover;";
 
 	protected override Task OnInitializedAsync()
 	{
