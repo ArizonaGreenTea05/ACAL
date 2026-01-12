@@ -34,7 +34,7 @@
 	private string _currentTimeString = string.Empty;
 	private string _currentDateString = string.Empty;
 
-	protected override async Task OnInitializedAsync()
+	protected override Task OnInitializedAsync()
 	{
 		// Initialize time and date strings with proper formatting
 		_currentTimeString = DateTime.Now.ToShortTimeString(Design?.ShortTimeFormat, CurrentCulture);
@@ -56,8 +56,15 @@
 			Logger.LogInformation("Initialized time timer");
 		}
 		_timeTimer.Start();
-		
-		// Trigger initial render to ensure proper display
-		await InvokeAsync(StateHasChanged);
+		return Task.CompletedTask;
+	}
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender)
+		{
+			// Trigger re-render after first render to ensure proper display with formatted time/date
+			await InvokeAsync(StateHasChanged);
+		}
 	}
 }

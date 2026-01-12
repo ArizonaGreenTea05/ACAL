@@ -47,14 +47,22 @@
 
 	private string CurrentPictureUrl => PictureService.CurrentPictureUrl ?? string.Empty;
 
-	protected override async Task OnInitializedAsync()
+	protected override Task OnInitializedAsync()
 	{
 		PictureService.ItemHasChanged += async (_, _) =>
 		{
 			if (ShowBackgroundImage) await InvokeAsync(StateHasChanged);
 		};
-		// Trigger initial render in case PictureService already has items loaded
-		if (ShowBackgroundImage) await InvokeAsync(StateHasChanged);
+		return Task.CompletedTask;
+	}
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender && ShowBackgroundImage)
+		{
+			// Trigger re-render after first render to display any pre-loaded images
+			await InvokeAsync(StateHasChanged);
+		}
 	}
 
 }
