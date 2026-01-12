@@ -145,23 +145,57 @@
                                 </div>
                             </div>
                             <div class="row">
-                                <div class="col-md-4 mb-3">
+                                <div class="col-md-3 mb-3">
                                     <div class="form-check">
                                         <InputCheckbox id="showDate" class="form-check-input" @bind-Value="currentSettings.Design.ShowDate" />
                                         <label class="form-check-label" for="showDate">Show Date</label>
                                     </div>
                                 </div>
-                                <div class="col-md-4 mb-3">
+                                <div class="col-md-3 mb-3">
                                     <div class="form-check">
                                         <InputCheckbox id="showTime" class="form-check-input" @bind-Value="currentSettings.Design.ShowTime" />
                                         <label class="form-check-label" for="showTime">Show Time</label>
                                     </div>
                                 </div>
-                                <div class="col-md-4 mb-3">
+                                <div class="col-md-3 mb-3">
                                     <div class="form-check">
                                         <InputCheckbox id="showColorLegend" class="form-check-input" @bind-Value="currentSettings.Design.ShowColorLegend" />
                                         <label class="form-check-label" for="showColorLegend">Show Color Legend</label>
                                     </div>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <div class="form-check">
+                                        <InputCheckbox id="showScrollBar" class="form-check-input" @bind-Value="currentSettings.Design.ShowScrollBar" />
+                                        <label class="form-check-label" for="showScrollBar">Show Scroll Bar</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-check">
+                                        <InputCheckbox id="swapPictureAndContentInLandscape" class="form-check-input" @bind-Value="currentSettings.Design.SwapPictureAndContentInLandscape" />
+                                        <label class="form-check-label" for="swapPictureAndContentInLandscape">Swap Picture And Content In Landscape</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-check">
+                                        <InputCheckbox id="swapPictureAndContentInPortrait" class="form-check-input" @bind-Value="currentSettings.Design.SwapPictureAndContentInPortrait" />
+                                        <label class="form-check-label" for="swapPictureAndContentInPortrait">Swap Picture And Content In Portrait</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label for="customSideImageOverlay" class="form-label">Custom Side Image Overlay</label>
+                                    <InputText id="customSideImageOverlay" class="form-control" @bind-Value="currentSettings.Design.CustomSideImageOverlay" placeholder="e.g. rgba(0,0,0,0.5)" />
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="customBackgroundImageOverlay" class="form-label">Custom Background Image Overlay</label>
+                                    <InputText id="customBackgroundImageOverlay" class="form-control" @bind-Value="currentSettings.Design.CustomBackgroundImageOverlay" placeholder="e.g. rgba(0,0,0,0.5)" />
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="customBackgroundImageBlur" class="form-label">Custom Background Image Blur</label>
+                                    <InputText id="customBackgroundImageBlur" class="form-control" @bind-Value="currentSettings.Design.CustomBackgroundImageBlur" placeholder="e.g. 5px" />
                                 </div>
                             </div>
                         </div>
