@@ -4,18 +4,6 @@
 @inject PictureService PictureService
 
 <style>
-	.side-image {
-		position: relative;
-		overflow: hidden;
-
-		background-image:
-		@(DifferentiatedDesign?.CustomSideImageOverlay ?? "radial-gradient(circle at center, rgba(0, 0, 0, 0.2) 40%, rgba(0, 0, 0, 0.8) 100%)"), url('@CurrentPictureUrl');
-		background-blend-mode: multiply;
-		background-repeat: no-repeat;
-		background-position: center;
-		background-size: cover;
-	}
-
 	.side-video {
 		position: absolute;
 		top: 0;
@@ -29,8 +17,7 @@
 
 </style>
 
-<div class="side-image @(Class ?? string.Empty)"
-	 style="padding: 0; @(Style ?? string.Empty)">
+<div class="@(Class ?? string.Empty)" style="@BackgroundImageStyle">
 
 	@if (IsVideo(CurrentPictureUrl))
 	{
@@ -57,6 +44,56 @@
 	[Parameter] public DifferentiatedDesign? DifferentiatedDesign { get; set; }
 
 	private string CurrentPictureUrl => PictureService.CurrentPictureUrl ?? string.Empty;
+
+	private string? _backgroundImageStyle;
+	private string _lastPictureUrl = string.Empty;
+	private string? _lastOverlay;
+	private string _lastStyle = string.Empty;
+
+	private string BackgroundImageStyle
+	{
+		get
+		{
+			var currentUrl = CurrentPictureUrl;
+			var currentStyle = Style ?? string.Empty;
+
+			string? overlay = null;
+			if (!string.IsNullOrWhiteSpace(currentUrl) &&
+			    currentUrl.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
+			{
+				overlay = DifferentiatedDesign?.CustomSideImageOverlay
+				          ?? "radial-gradient(circle at center, rgba(0, 0, 0, 0.2) 40%, rgba(0, 0, 0, 0.8) 100%)";
+			}
+
+			if (_backgroundImageStyle != null
+			    && string.Equals(_lastPictureUrl, currentUrl, StringComparison.Ordinal)
+			    && string.Equals(_lastStyle, currentStyle, StringComparison.Ordinal)
+			    && string.Equals(_lastOverlay, overlay, StringComparison.Ordinal))
+			{
+				return _backgroundImageStyle;
+			}
+
+			string result;
+
+			if (string.IsNullOrWhiteSpace(currentUrl) || overlay is null)
+			{
+				result = $"position: relative; overflow: hidden; padding: 0; {currentStyle}";
+			}
+			else
+			{
+				// Use single quotes in url() to avoid escaping issues with data URIs
+				result =
+					$"position: relative; overflow: hidden; background-image: {overlay}, url('{currentUrl}'); background-blend-mode: multiply; background-repeat: no-repeat; background-position: center; background-size: cover; padding: 0; {currentStyle}";
+			}
+
+			_backgroundImageStyle = result;
+			_lastPictureUrl = currentUrl;
+			_lastStyle = currentStyle;
+			_lastOverlay = overlay;
+
+			return result;
+		}
+	}
 
 	protected override Task OnInitializedAsync()
 	{
