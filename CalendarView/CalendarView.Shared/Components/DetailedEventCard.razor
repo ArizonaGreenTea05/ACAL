@@ -40,11 +40,11 @@
 					{
 						case AllDayCalendarEvent adEvent:
 							@adEvent.Start.ToShortDateString(Design.ShortDateFormat, CurrentCulture)
-							@(adEvent.Start == adEvent.End ? "" : $"- {adEvent.End.ToShortDateString(Design.ShortDateFormat, CurrentCulture)}")
+							@(adEvent.Start == adEvent.End ? "" : $" - {adEvent.End.ToShortDateString(Design.ShortDateFormat, CurrentCulture)}")
 							break;
 						case DefaultCalendarEvent dEvent:
 							@dEvent.Start.Date.ToShortDateString(Design.ShortDateFormat, CurrentCulture)
-							@(dEvent.Start.Date == dEvent.End.Date ? "" : $"- {dEvent.End.Date.ToShortDateString(Design.ShortDateFormat, CurrentCulture)}")
+							@(dEvent.Start.Date == dEvent.End.Date ? "" : $" - {dEvent.End.Date.ToShortDateString(Design.ShortDateFormat, CurrentCulture)}")
 							break;
 					}
 				</div>

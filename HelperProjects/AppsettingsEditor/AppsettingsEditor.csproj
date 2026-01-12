@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>HelperProjects.AppsettingsEditor</RootNamespace>
+    <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\CalendarView\CalendarView.Shared\CalendarView.Shared.csproj" />
+    <ProjectReference Include="..\..\CalendarView.Core\CalendarView.Core.csproj" />
+    <ProjectReference Include="..\..\CalendarView.Services\CalendarView.Services.csproj" />
+    <ProjectReference Include="..\..\Spotify\Spotify.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <SupportedPlatform Include="browser" />
+  </ItemGroup>
+
+</Project>

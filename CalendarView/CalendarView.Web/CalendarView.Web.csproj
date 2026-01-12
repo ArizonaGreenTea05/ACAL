@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CalendarView.Shared\CalendarView.Shared.csproj" />
+    <ProjectReference Include="..\..\HelperProjects\AppsettingsEditor\AppsettingsEditor.csproj" />
   </ItemGroup>
 
 </Project>

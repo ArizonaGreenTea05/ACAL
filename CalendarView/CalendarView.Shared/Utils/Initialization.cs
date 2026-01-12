@@ -17,7 +17,7 @@ namespace CalendarView.Shared.Utils
 {
     public static class Initialization
     {
-        public static void LoadAppsettings(out Calendars calendars, out Design design, out LoggingConfig loggingConfig, out SpotifyServiceLoginData spotifyLoginData, out AuthenticationConfig authenticationConfig)
+        public static void LoadAppsettings(out Calendars calendars, out Design design, out LoggingConfig loggingConfig, out SpotifyServiceLoginData spotifyLoginData, out AuthenticationConfig authenticationConfig, out EditorConfig editorConfig)
         {
             var appsettingsPaths = new[] { "../config/appsettings.json", "appsettings.json" };
             var path = appsettingsPaths.FirstOrDefault(File.Exists) ?? throw new FileNotFoundException("appsettings not found");
@@ -41,6 +41,9 @@ namespace CalendarView.Shared.Utils
 
             authenticationConfig = new AuthenticationConfig();
             appsettings.GetSection(nameof(AuthenticationConfig)).Bind(authenticationConfig);
+
+            editorConfig = new EditorConfig();
+            appsettings.GetSection(nameof(EditorConfig)).Bind(editorConfig);
         }
 
         extension(IServiceCollection serviceCollection)
