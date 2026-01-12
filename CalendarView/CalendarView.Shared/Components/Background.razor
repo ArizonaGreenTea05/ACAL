@@ -16,7 +16,7 @@
 	}
 </style>
 
-<div class="@(ShowBackgroundImage ? "show-background" : "")" style="@(ShowBackgroundImage ? $"background-image: {DifferentiatedDesign?.CustomBackgroundImageOverlay ?? "radial-gradient(circle at center, rgba(0, 0, 0, 0.7) 40%, rgba(0, 0, 0, 0.8) 100%)"}, url('{CurrentPictureUrl}'); background-blend-mode: multiply; background-repeat: no-repeat; background-position: center; background-size: cover;" : "") margin: 0px; padding: 0px; height: 100vh; width: 100%;">
+<div class="@(ShowBackgroundImage ? "show-background" : "")" style="@BackgroundImageStyle">
 	@if (IsVideo(CurrentPictureUrl))
 	{
 		<video class="background-video" autoplay muted loop playsinline>
@@ -37,6 +37,19 @@
 	[Parameter] public DifferentiatedDesign? DifferentiatedDesign { get; set; }
 
 	private string CurrentPictureUrl => PictureService.CurrentPictureUrl ?? string.Empty;
+
+	private string BackgroundImageStyle
+	{
+		get
+		{
+			var baseStyle = "margin: 0px; padding: 0px; height: 100vh; width: 100%;";
+			if (!ShowBackgroundImage)
+				return baseStyle;
+
+			var overlay = DifferentiatedDesign?.CustomBackgroundImageOverlay ?? "radial-gradient(circle at center, rgba(0, 0, 0, 0.7) 40%, rgba(0, 0, 0, 0.8) 100%)";
+			return $"background-image: {overlay}, url('{CurrentPictureUrl}'); background-blend-mode: multiply; background-repeat: no-repeat; background-position: center; background-size: cover; {baseStyle}";
+		}
+	}
 
 	protected override Task OnInitializedAsync()
 	{
