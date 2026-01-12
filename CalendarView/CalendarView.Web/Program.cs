@@ -31,8 +31,8 @@ public class Program
         var app = builder.Build();
 
         // Eagerly instantiate singleton services to start their timers
-        _ = app.Services.GetRequiredService<CalendarView.Services.PictureService>();
-        _ = app.Services.GetRequiredService<CalendarView.Services.Text.TextService>();
+        _ = app.Services.GetRequiredService<PictureService>();
+        _ = app.Services.GetRequiredService<TextService>();
 
         // Configure the HTTP request pipeline.
         if (!app.Environment.IsDevelopment())
