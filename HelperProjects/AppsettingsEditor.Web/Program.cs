@@ -1,4 +1,6 @@
 using AppsettingsEditor.Web.Components;
+using CalendarView.Shared.Models;
+using CalendarView.Shared.Utils;
 using HelperProjects.AppsettingsEditor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,6 +11,13 @@ builder.Services.AddRazorComponents()
 
 // Add AppsettingsEditor services
 builder.Services.AddScoped<AppSettingsService>();
+builder.Services.RegisterLogging(new LoggingConfig
+{
+    LoggingTemplate = "| {Timestamp:HH:mm:ss:fff} | {Level:u3} | {SourceContext} | {CallerMemberName} | {Message:lj} | {CallerFilePath}:{CallerLineNumber} | {Exception} |",
+    LoggingPath = "logs/log.debug",
+    FilteredLoggingPath = "logs/log.information"
+});
+
 
 var app = builder.Build();
 
