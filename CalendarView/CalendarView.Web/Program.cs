@@ -1,4 +1,6 @@
+using CalendarView.Services;
 using CalendarView.Services.Music.Spotify;
+using CalendarView.Services.Text;
 using CalendarView.Web.Components;
 using CalendarView.Web.Middleware;
 using CalendarView.Web.Services;
@@ -27,6 +29,10 @@ public class Program
         builder.Services.AddScoped<AppSettingsService>();
 
         var app = builder.Build();
+
+        // Eagerly instantiate singleton services to start their timers
+        _ = app.Services.GetRequiredService<CalendarView.Services.PictureService>();
+        _ = app.Services.GetRequiredService<CalendarView.Services.Text.TextService>();
 
         // Configure the HTTP request pipeline.
         if (!app.Environment.IsDevelopment())
