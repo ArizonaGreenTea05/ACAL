@@ -74,13 +74,4 @@
 		};
 		return Task.CompletedTask;
 	}
-
-	protected override Task OnParametersSetAsync()
-	{
-		if (ShowImage)
-		{
-			StateHasChanged();
-		}
-		return Task.CompletedTask;
-	}
 }
