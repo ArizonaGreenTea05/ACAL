@@ -149,5 +149,8 @@
 		MusicService.SongChanged += async (_, _) => await InvokeAsync(StateHasChanged);
 		MusicService.PlayStateChanged += async (_, _) => await InvokeAsync(StateHasChanged);
 		if (!MusicService.IsRunning) await MusicService.StartService();
+		
+		// Trigger initial render in case MusicService already has current track loaded
+		await InvokeAsync(StateHasChanged);
 	}
 }

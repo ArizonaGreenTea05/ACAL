@@ -16,12 +16,13 @@
 @code {
 	[Parameter] public string? Style { get; set; }
 
-	protected override Task OnInitializedAsync()
+	protected override async Task OnInitializedAsync()
 	{
 		TextService.ItemHasChanged += async (_, _) =>
 		{
 			await InvokeAsync(StateHasChanged);
 		};
-		return Task.CompletedTask;
+		// Trigger initial render in case TextService already has items loaded
+		await InvokeAsync(StateHasChanged);
 	}
 }

@@ -31,11 +31,15 @@
 	private CultureInfo CurrentCulture => new(Design.Language);
 
 	private Timer? _timeTimer;
-	private string _currentTimeString = DateTime.Now.ToShortTimeString();
-	private string _currentDateString = DateTime.Now.ToLongDateString();
+	private string _currentTimeString = string.Empty;
+	private string _currentDateString = string.Empty;
 
-	protected override Task OnInitializedAsync()
+	protected override async Task OnInitializedAsync()
 	{
+		// Initialize time and date strings with proper formatting
+		_currentTimeString = DateTime.Now.ToShortTimeString(Design?.ShortTimeFormat, CurrentCulture);
+		_currentDateString = DateTime.Now.ToLongDateString(Design?.LongDateFormat, CurrentCulture);
+		
 		if (_timeTimer is null)
 		{
 			_timeTimer = new Timer(TimeSpan.FromSeconds(10));
@@ -52,6 +56,8 @@
 			Logger.LogInformation("Initialized time timer");
 		}
 		_timeTimer.Start();
-		return Task.CompletedTask;
+		
+		// Trigger initial render to ensure proper display
+		await InvokeAsync(StateHasChanged);
 	}
 }
