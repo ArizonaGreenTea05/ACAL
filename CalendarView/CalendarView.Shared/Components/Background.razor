@@ -16,7 +16,7 @@
 	}
 </style>
 
-<div class="@(ShowBackgroundImage ? "show-background" : "")" style="@BackgroundImageStyle">
+<div style="@BackgroundImageStyle">
 	@if (IsVideo(CurrentPictureUrl))
 	{
 		<video class="background-video" autoplay muted loop playsinline>
@@ -43,10 +43,15 @@
 		get
 		{
 			var baseStyle = "margin: 0px; padding: 0px; height: 100vh; width: 100%;";
-			if (!ShowBackgroundImage)
+			if (!ShowBackgroundImage || string.IsNullOrWhiteSpace(CurrentPictureUrl))
+				return baseStyle;
+
+			// Validate that URL is a data URI (from PictureService) for security
+			if (!CurrentPictureUrl.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
 				return baseStyle;
 
 			var overlay = DifferentiatedDesign?.CustomBackgroundImageOverlay ?? "radial-gradient(circle at center, rgba(0, 0, 0, 0.7) 40%, rgba(0, 0, 0, 0.8) 100%)";
+			// Use single quotes in url() to avoid escaping issues with data URIs
 			return $"background-image: {overlay}, url('{CurrentPictureUrl}'); background-blend-mode: multiply; background-repeat: no-repeat; background-position: center; background-size: cover; {baseStyle}";
 		}
 	}
