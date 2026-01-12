@@ -97,7 +97,7 @@
 	{
 		Logger.LogInformation("Started initialization");
 
-		var uri = new Uri(Navigation.Uri);
+		var uri = Navigation.ToAbsoluteUri(Navigation.Uri);
 		var queryParameters = QueryHelpers.ParseQuery(uri.Query);
 		if (queryParameters.TryGetValue(key: nameof(PageLayoutTranslation.ShowBackgroundImage),
 				value: out var showBackgroundImage))
