@@ -43,9 +43,7 @@ public class AppSettingsService
 
             var settings = new JsonSerializerSettings
             {
-                Formatting = Formatting.Indented,
-                NullValueHandling = NullValueHandling.Ignore,
-                DefaultValueHandling = DefaultValueHandling.Ignore
+                Formatting = Formatting.Indented
             };
 
             return JsonConvert.SerializeObject(clonedModel, settings);
