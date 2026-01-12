@@ -4,15 +4,6 @@
 @inject PictureService PictureService
 
 <style>
-	.background-image {
-		background-image:
-		@(DifferentiatedDesign?.CustomBackgroundImageOverlay ?? "radial-gradient(circle at center, rgba(0, 0, 0, 0.7) 40%, rgba(0, 0, 0, 0.8) 100%)"), url('@CurrentPictureUrl');
-		background-blend-mode: multiply;
-		background-repeat: no-repeat;
-		background-position: center;
-		background-size: cover;
-	}
-
 	.background-video {
 		position: absolute;
 		top: 0;
@@ -25,7 +16,7 @@
 	}
 </style>
 
-<div class="@(ShowBackgroundImage ? "background-image" : "")" style="margin: 0px; padding: 0px; height: 100vh; width: 100%;">
+<div class="@(ShowBackgroundImage ? "show-background" : "")" style="@(ShowBackgroundImage ? $"background-image: {DifferentiatedDesign?.CustomBackgroundImageOverlay ?? "radial-gradient(circle at center, rgba(0, 0, 0, 0.7) 40%, rgba(0, 0, 0, 0.8) 100%)"}, url('{CurrentPictureUrl}'); background-blend-mode: multiply; background-repeat: no-repeat; background-position: center; background-size: cover;" : "") margin: 0px; padding: 0px; height: 100vh; width: 100%;">
 	@if (IsVideo(CurrentPictureUrl))
 	{
 		<video class="background-video" autoplay muted loop playsinline>
