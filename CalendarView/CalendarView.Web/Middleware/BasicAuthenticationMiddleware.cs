@@ -94,8 +94,8 @@ public class BasicAuthenticationMiddleware(
                 principal,
                 new AuthenticationProperties
                 {
-                    IsPersistent = true,
-                    ExpiresUtc = DateTimeOffset.UtcNow.AddDays(7)
+                    IsPersistent = true
+                    // Expiration is controlled by cookie options in Program.cs
                 });
 
             logger.LogInformation("User {Username} signed in with cookie authentication", safeUsername);

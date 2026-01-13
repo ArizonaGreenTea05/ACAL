@@ -10,6 +10,8 @@ namespace CalendarView.Web;
 
 public class Program
 {
+    private const int AuthenticationCookieExpirationDays = 7;
+
     public static void Main(string[] args)
     {
         LoadAppsettings(out var calendars, out var design, out var loggingConfig, out var spotifyLoginData, out var authenticationConfig, out var editorConfig);
@@ -27,7 +29,7 @@ public class Program
                 options.Cookie.HttpOnly = true;
                 options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
                 options.SlidingExpiration = true;
-                options.ExpireTimeSpan = TimeSpan.FromDays(7);
+                options.ExpireTimeSpan = TimeSpan.FromDays(AuthenticationCookieExpirationDays);
                 options.LoginPath = "/";
                 options.AccessDeniedPath = "/";
             });
