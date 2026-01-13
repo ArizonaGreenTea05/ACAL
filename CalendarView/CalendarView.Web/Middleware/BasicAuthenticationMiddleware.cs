@@ -83,8 +83,8 @@ public class BasicAuthenticationMiddleware(
             // Create claims identity and sign in with cookie authentication
             var claims = new[]
             {
-                new Claim(ClaimTypes.Name, username),
-                new Claim(ClaimTypes.NameIdentifier, username)
+                new Claim(ClaimTypes.Name, safeUsername),
+                new Claim(ClaimTypes.NameIdentifier, safeUsername)
             };
             var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
             var principal = new ClaimsPrincipal(identity);
