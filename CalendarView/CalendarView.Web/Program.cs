@@ -33,6 +33,7 @@ public class Program
                 options.LoginPath = "/";
                 options.AccessDeniedPath = "/";
             });
+        builder.Services.AddAuthorization();
 
         // Add services to the container.
         builder.Services.AddRazorComponents()

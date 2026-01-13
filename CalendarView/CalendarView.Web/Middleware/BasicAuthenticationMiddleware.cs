@@ -98,6 +98,8 @@ public class BasicAuthenticationMiddleware(
                     // Expiration is controlled by cookie options in Program.cs
                 });
 
+            context.User = principal;
+
             logger.LogInformation("User {Username} signed in with cookie authentication", safeUsername);
             await next(context);
         }
