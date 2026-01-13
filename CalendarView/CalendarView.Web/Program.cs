@@ -3,12 +3,15 @@ using CalendarView.Web.Components;
 using CalendarView.Web.Middleware;
 using CalendarView.Web.Services;
 using HelperProjects.AppsettingsEditor.Services;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using static CalendarView.Shared.Utils.Initialization;
 
 namespace CalendarView.Web;
 
 public class Program
 {
+    private const int AuthenticationCookieExpirationDays = 7;
+
     public static void Main(string[] args)
     {
         LoadAppsettings(out var calendars, out var design, out var loggingConfig, out var spotifyLoginData, out var authenticationConfig, out var editorConfig);
@@ -17,6 +20,20 @@ public class Program
 
         builder.Services.RegisterServices<FormFactor, SpotifyService>(calendars, design, spotifyLoginData, authenticationConfig);
         builder.Services.RegisterLogging(loggingConfig);
+
+        // Add cookie authentication
+        builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+            .AddCookie(options =>
+            {
+                options.Cookie.Name = "ACAL.Auth";
+                options.Cookie.HttpOnly = true;
+                options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+                options.SlidingExpiration = true;
+                options.ExpireTimeSpan = TimeSpan.FromDays(AuthenticationCookieExpirationDays);
+                options.LoginPath = "/";
+                options.AccessDeniedPath = "/";
+            });
+        builder.Services.AddAuthorization();
 
         // Add services to the container.
         builder.Services.AddRazorComponents()
@@ -37,6 +54,10 @@ public class Program
         }
 
         app.UseHttpsRedirection();
+
+        // Add authentication and authorization
+        app.UseAuthentication();
+        app.UseAuthorization();
 
         // Add Basic Authentication middleware early in the pipeline
         app.UseMiddleware<BasicAuthenticationMiddleware>();
