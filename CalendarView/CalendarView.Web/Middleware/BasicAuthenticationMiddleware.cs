@@ -1,6 +1,9 @@
 using CalendarView.Shared.Models;
 using System.Net;
+using System.Security.Claims;
 using System.Text;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace CalendarView.Web.Middleware;
 
@@ -14,6 +17,14 @@ public class BasicAuthenticationMiddleware(
         // Skip authentication if not enabled
         if (!authConfig.Enabled)
         {
+            await next(context);
+            return;
+        }
+
+        // Check if already authenticated via cookie
+        if (context.User.Identity?.IsAuthenticated == true)
+        {
+            logger.LogDebug("User already authenticated via cookie");
             await next(context);
             return;
         }
@@ -68,6 +79,26 @@ public class BasicAuthenticationMiddleware(
         if (username == authConfig.Username && password == authConfig.Password)
         {
             logger.LogDebug("Authentication successful for user: {Username}", safeUsername);
+            
+            // Create claims identity and sign in with cookie authentication
+            var claims = new[]
+            {
+                new Claim(ClaimTypes.Name, username),
+                new Claim(ClaimTypes.NameIdentifier, username)
+            };
+            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var principal = new ClaimsPrincipal(identity);
+
+            await context.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                principal,
+                new AuthenticationProperties
+                {
+                    IsPersistent = true,
+                    ExpiresUtc = DateTimeOffset.UtcNow.AddDays(7)
+                });
+
+            logger.LogInformation("User {Username} signed in with cookie authentication", safeUsername);
             await next(context);
         }
         else
