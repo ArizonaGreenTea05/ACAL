@@ -65,7 +65,7 @@ Use `"*"` to allow all hosts, or specify specific domains: `"localhost;example.c
 
 ## Authentication
 
-ACAL supports HTTP Basic Authentication to protect access.
+ACAL supports HTTP Basic Authentication with cookie-based session management to protect access. Once authenticated, a secure cookie is stored in your browser to maintain your session for up to 7 days.
 
 ### Configuration
 
@@ -83,6 +83,15 @@ ACAL supports HTTP Basic Authentication to protect access.
 - `Enabled` (boolean) - Enable or disable authentication
 - `Username` (string) - Username for authentication
 - `Password` (string) - Password for authentication
+
+### How Authentication Works
+
+1. When you first access ACAL, you'll be prompted for credentials via HTTP Basic Authentication
+2. Upon successful authentication, ACAL creates a secure cookie that persists your session
+3. Subsequent requests (including Blazor SignalR connections) are automatically authenticated using this cookie
+4. The session remains active for 7 days with sliding expiration, or until you clear browser cookies
+
+This cookie-based approach ensures that Blazor data binding works correctly by maintaining authentication across all requests, including the initial page load and subsequent SignalR connections.
 
 ### Security Best Practices
 

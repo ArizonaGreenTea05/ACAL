@@ -4,6 +4,15 @@
 @inject PictureService PictureService
 
 <style>
+	.background-image {
+		background-image:
+		@(DifferentiatedDesign?.CustomBackgroundImageOverlay ?? "radial-gradient(circle at center, rgba(0, 0, 0, 0.7) 40%, rgba(0, 0, 0, 0.8) 100%)"), url('@CurrentPictureUrl');
+		background-blend-mode: multiply;
+		background-repeat: no-repeat;
+		background-position: center;
+		background-size: cover;
+	}
+
 	.background-video {
 		position: absolute;
 		top: 0;
@@ -16,7 +25,7 @@
 	}
 </style>
 
-<div style="@BackgroundImageStyle">
+<div class="@(ShowBackgroundImage ? "background-image" : "")" style="margin: 0px; padding: 0px; height: 100vh; width: 100%;">
 	@if (IsVideo(CurrentPictureUrl))
 	{
 		<video class="background-video" autoplay muted loop playsinline>
@@ -38,58 +47,6 @@
 
 	private string CurrentPictureUrl => PictureService.CurrentPictureUrl ?? string.Empty;
 
-	private string? _cachedBackgroundImageStyle;
-	private string? _lastPictureUrl;
-	private string? _lastOverlay;
-	private bool _lastShowBackgroundImage;
-
-	private string BackgroundImageStyle
-	{
-		get
-		{
-			var baseStyle = "margin: 0px; padding: 0px; height: 100vh; width: 100%;";
-
-			var currentUrl = CurrentPictureUrl;
-			var currentOverlaySource = DifferentiatedDesign?.CustomBackgroundImageOverlay;
-			var currentShowBackgroundImage = ShowBackgroundImage;
-
-			// Return cached style if inputs have not changed
-			if (_cachedBackgroundImageStyle is not null
-				&& string.Equals(_lastPictureUrl, currentUrl, StringComparison.Ordinal)
-				&& string.Equals(_lastOverlay, currentOverlaySource, StringComparison.Ordinal)
-				&& _lastShowBackgroundImage == currentShowBackgroundImage)
-			{
-				return _cachedBackgroundImageStyle;
-			}
-
-			string result;
-
-			if (!currentShowBackgroundImage || string.IsNullOrWhiteSpace(currentUrl))
-			{
-				result = baseStyle;
-			}
-			else if (!currentUrl.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
-			{
-				// Validate that URL is a data URI (from PictureService) for security
-				result = baseStyle;
-			}
-			else
-			{
-				var overlay = currentOverlaySource ?? "radial-gradient(circle at center, rgba(0, 0, 0, 0.7) 40%, rgba(0, 0, 0, 0.8) 100%)";
-				// Use single quotes in url() to avoid escaping issues with data URIs
-				result = $"background-image: {overlay}, url('{currentUrl}'); background-blend-mode: multiply; background-repeat: no-repeat; background-position: center; background-size: cover; {baseStyle}";
-			}
-
-			// Update cache
-			_cachedBackgroundImageStyle = result;
-			_lastPictureUrl = currentUrl;
-			_lastOverlay = currentOverlaySource;
-			_lastShowBackgroundImage = currentShowBackgroundImage;
-
-			return result;
-		}
-	}
-
 	protected override Task OnInitializedAsync()
 	{
 		PictureService.ItemHasChanged += async (_, _) =>
@@ -98,6 +55,5 @@
 		};
 		return Task.CompletedTask;
 	}
-
 
 }

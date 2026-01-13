@@ -287,6 +287,11 @@ This guide helps you resolve common issues and answers frequently asked question
    - Clear saved passwords for the site
    - Try incognito/private browsing mode
 
+4. **Clear Authentication Cookies:**
+   - Clear cookies for the site (look for "ACAL.Auth" cookie)
+   - Authentication session is stored in a cookie
+   - Try a hard refresh (Ctrl+F5)
+
 ### Authentication Not Working
 
 **Symptoms:** No login prompt appears, or authentication is bypassed.
@@ -309,6 +314,27 @@ This guide helps you resolve common issues and answers frequently asked question
 3. **Check Middleware:**
    - Ensure BasicAuthenticationMiddleware is enabled
    - Review startup logs
+
+### Blazor Data Binding Issues After Authentication
+
+**Symptoms:** After authenticating, some data doesn't load or updates fail.
+
+**Solutions:**
+
+1. **Clear Browser Cookies:**
+   - The authentication cookie may be corrupted
+   - Clear all cookies for the site
+   - Log in again with fresh credentials
+
+2. **Check Browser Console:**
+   - Open browser developer tools (F12)
+   - Look for authentication-related errors
+   - Check SignalR connection status
+
+3. **Verify Cookie Support:**
+   - Ensure browser accepts cookies
+   - Check that third-party cookie blocking isn't too strict
+   - Try disabling browser extensions that block cookies
 
 ## Spotify Issues
 
