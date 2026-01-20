@@ -19,12 +19,10 @@ namespace CalendarView.Shared.Utils
     {
         public static void LoadAppsettings(out Calendars calendars, out Design design, out LoggingConfig loggingConfig, out SpotifyServiceLoginData spotifyLoginData, out AuthenticationConfig authenticationConfig, out EditorConfig editorConfig)
         {
-            var appsettingsPaths = new[] { "../config/appsettings.json", "appsettings.json" };
-            var path = appsettingsPaths.FirstOrDefault(File.Exists) ?? throw new FileNotFoundException("appsettings not found");
-            var appsettingsStream = File.OpenRead(path);
             var appsettingsBuilder = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonStream(appsettingsStream);
+                .AddJsonStream(GetAppsettingsStream(["../config/appsettings.json", "appsettings.json"]))
+                .AddJsonFile("appsettings.Development.json", true);
             var appsettings = appsettingsBuilder.Build();
             calendars = new Calendars();
             appsettings.GetSection(nameof(Calendars)).Bind(calendars);
@@ -44,6 +42,13 @@ namespace CalendarView.Shared.Utils
 
             editorConfig = new EditorConfig();
             appsettings.GetSection(nameof(EditorConfig)).Bind(editorConfig);
+        }
+
+        private static FileStream GetAppsettingsStream(string[] appsettingsPaths)
+        {
+            var path = appsettingsPaths.FirstOrDefault(File.Exists) ?? throw new FileNotFoundException("appsettings not found");
+            var appsettingsStream = File.OpenRead(path);
+            return appsettingsStream;
         }
 
         extension(IServiceCollection serviceCollection)
