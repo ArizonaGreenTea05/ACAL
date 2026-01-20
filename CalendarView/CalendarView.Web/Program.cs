@@ -1,3 +1,4 @@
+using CalendarView.Services.Music.Models;
 using CalendarView.Services.Music.Spotify;
 using CalendarView.Web.Components;
 using CalendarView.Web.Middleware;
@@ -14,12 +15,12 @@ public class Program
 
     public static void Main(string[] args)
     {
-        LoadAppsettings(out var calendars, out var design, out var loggingConfig, out var spotifyLoginData, out var authenticationConfig, out var editorConfig);
+        LoadAppsettings(out var calendars, out var design, out var loggingConfig, out var loginDataCollection, out var authenticationConfig, out var editorConfig);
 
         var builder = WebApplication.CreateBuilder(args);
 
-        builder.Services.RegisterServices<FormFactor, SpotifyService>(calendars, design, spotifyLoginData, authenticationConfig);
         builder.Services.RegisterLogging(loggingConfig);
+        builder.Services.RegisterServices<FormFactor>(calendars, design, loginDataCollection, authenticationConfig);
 
         // Add cookie authentication
         builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)

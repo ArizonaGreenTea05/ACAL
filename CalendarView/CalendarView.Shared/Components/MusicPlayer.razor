@@ -1,8 +1,6 @@
 ﻿@using CalendarView.Services.Music.Interfaces
 @using CalendarView.Shared.Models
 @using Enums = CalendarView.Services.Music.Enums
-@inject IMusicService MusicService;
-@inject IMusicServiceLoginData MusicServiceLoginData
 @inject Design Design
 
 <style>
@@ -92,8 +90,8 @@
 			<div class="np-artists font-12">@string.Join(", ", MusicService.CurrentTrack?.Artists.Select(a => a.Name) ?? [])</div>
 		</div>
 
-        <div class="np-state font-@(MusicServiceLoginData.CanControlPlayback ? "14" : "20")">
-            @if (MusicServiceLoginData.CanControlPlayback)
+        <div class="np-state font-@(MusicService.LoginData is { CanControlPlayback: true } ? "14" : "20")">
+            @if (MusicService.LoginData?.CanControlPlayback ?? false)
             {
 	            <div class="player-controls">
 		            <div>
@@ -144,8 +142,11 @@
 </div>
 
 @code {
+    [Parameter] public IMusicService? MusicService { get; set; }
+
 	protected override async Task OnInitializedAsync()
 	{
+        if (MusicService is null) return;
 		MusicService.SongChanged += async (_, _) => await InvokeAsync(StateHasChanged);
 		MusicService.PlayStateChanged += async (_, _) => await InvokeAsync(StateHasChanged);
 		if (!MusicService.IsRunning) await MusicService.StartService();

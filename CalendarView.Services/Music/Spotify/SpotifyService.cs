@@ -22,7 +22,7 @@ public class SpotifyService : IMusicService
 
     private SpotifyClient? _spotifyClient = null;
     private readonly string _appdataFolderPath;
-    private readonly ILogger<SpotifyService> _logger;
+    private readonly ILogger _logger;
 
     public Enums.PlayState PlayState { get; private set; } = Enums.PlayState.Unspecified;
 
@@ -48,7 +48,7 @@ public class SpotifyService : IMusicService
 
     public SpotifyServiceLoginData? SpotifyLoginData { get; set; }
 
-    public SpotifyService(IMusicServiceLoginData loginData, [FromKeyedServices("AppdataFolderPath")] string appdataFolderPath, ILogger<SpotifyService> logger)
+    public SpotifyService(IMusicServiceLoginData loginData, string appdataFolderPath, ILogger logger)
     {
         _logger = logger;
         LoginData = loginData;

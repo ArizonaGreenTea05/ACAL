@@ -3,7 +3,7 @@
 @using CalendarView.Shared.Models
 @inject CalendarViewModel CalendarViewModel
 @inject Design Design
-@inject IMusicService MusicService
+@inject IMusicServiceCollection MusicServiceCollection
 
 <style>
 	@@media screen and (orientation: portrait) {
@@ -61,10 +61,14 @@
 			<SideImage ShowImage="@ShowImage" DifferentiatedDesign="DifferentiatedDesign" class="menu menu-overwrite">
 				<div style="height: 100%; width: 100%; display: flex; flex-direction: column; padding-right: 25px;">
 					<div style="display: flex;">
-						@if (MusicService.CurrentTrack is not null)
+						@foreach (var musicService in MusicServiceCollection.Items)
 						{
-							<MusicPlayer/>
+							@if (musicService.CurrentTrack is not null)
+							{
+								<MusicPlayer MusicService="@musicService" />
+							}
 						}
+						
 
 						<TimeAndDate SwapAlignment="@ShowImage" DifferentiatedDesign="@DifferentiatedDesign"/>
 
@@ -96,10 +100,13 @@
 				<div style="display: flex;">
 
 					<TimeAndDate SwapAlignment="@ShowImage" DifferentiatedDesign="@DifferentiatedDesign" />
-
-					@if (MusicService.CurrentTrack is not null)
+					
+					@foreach (var musicService in MusicServiceCollection.Items)
 					{
-						<MusicPlayer />
+						@if (musicService.CurrentTrack is not null)
+						{
+							<MusicPlayer MusicService="@musicService" />
+						}
 					}
 				</div>
 			</div>
@@ -140,6 +147,9 @@
 
 	protected override async Task OnInitializedAsync()
 	{
-		MusicService.SongChanged += async (_, _) => await InvokeAsync(StateHasChanged); // Remove / add music player when the song changes
+		foreach (var musicService in MusicServiceCollection.Items)
+		{
+			musicService.SongChanged += async (_, _) => await InvokeAsync(StateHasChanged); // Remove / add music player when the song changes
+		}
 	}
 }

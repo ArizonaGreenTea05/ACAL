@@ -3,4 +3,6 @@
 public interface IMusicServiceLoginData
 {
     bool CanControlPlayback { get; }
+
+    Type ServiceType { get; }
 }

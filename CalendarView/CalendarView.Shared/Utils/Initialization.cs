@@ -1,8 +1,8 @@
-﻿using System.Runtime.InteropServices;
-using CalendarView.Core.Models;
+﻿using CalendarView.Core.Models;
 using CalendarView.Core.ViewModels;
 using CalendarView.Services;
 using CalendarView.Services.Music.Interfaces;
+using CalendarView.Services.Music.Models;
 using CalendarView.Services.Music.Spotify;
 using CalendarView.Services.Text;
 using CalendarView.Shared.Models;
@@ -12,12 +12,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Events;
+using System.Runtime.InteropServices;
 
 namespace CalendarView.Shared.Utils
 {
     public static class Initialization
     {
-        public static void LoadAppsettings(out Calendars calendars, out Design design, out LoggingConfig loggingConfig, out SpotifyServiceLoginData spotifyLoginData, out AuthenticationConfig authenticationConfig, out EditorConfig editorConfig)
+        public static void LoadAppsettings(out Calendars calendars, out Design design, out LoggingConfig loggingConfig, out MusicServiceLoginDataCollection musicServiceLoginData, out AuthenticationConfig authenticationConfig, out EditorConfig editorConfig)
         {
             var appsettingsPaths = new[] { "../config/appsettings.json", "appsettings.json" };
             var path = appsettingsPaths.FirstOrDefault(File.Exists) ?? throw new FileNotFoundException("appsettings not found");
@@ -45,8 +46,8 @@ namespace CalendarView.Shared.Utils
             loggingConfig = new LoggingConfig();
             appsettings.GetSection(nameof(LoggingConfig)).Bind(loggingConfig);
 
-            spotifyLoginData = new SpotifyServiceLoginData();
-            appsettings.GetSection(nameof(SpotifyServiceLoginData)).Bind(spotifyLoginData);
+            musicServiceLoginData = new MusicServiceLoginDataCollection();
+            appsettings.GetSection(nameof(MusicServiceLoginDataCollection)).Bind(musicServiceLoginData);
 
             authenticationConfig = new AuthenticationConfig();
             appsettings.GetSection(nameof(AuthenticationConfig)).Bind(authenticationConfig);
@@ -57,14 +58,14 @@ namespace CalendarView.Shared.Utils
 
         extension(IServiceCollection serviceCollection)
         {
-            public void RegisterServices<TFormFactor, TMusicService>(Calendars calendars, Design design, IMusicServiceLoginData musicServiceLoginData, AuthenticationConfig authenticationConfig) where TFormFactor : class, IFormFactor where TMusicService : class, IMusicService
+            public void RegisterServices<TFormFactor>(Calendars calendars, Design design, IMusicServiceLoginDataCollection musicServicesLoginData, AuthenticationConfig authenticationConfig) where TFormFactor : class, IFormFactor
             {
                 var isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
                 serviceCollection.AddSingleton<IFormFactor, TFormFactor>();
                 serviceCollection.AddSingleton(calendars);
                 serviceCollection.AddSingleton(design);
-                serviceCollection.AddSingleton(musicServiceLoginData);
-                serviceCollection.AddSingleton<IMusicService, TMusicService>();
+                serviceCollection.AddSingleton(musicServicesLoginData);
+                serviceCollection.AddSingleton<IMusicServiceCollection, MusicServiceCollection>();
                 serviceCollection.AddKeyedSingleton("PictureRefreshInterval", new Common.TimeSpan(TimeSpan.FromMinutes(design.ChangePictureAfterMinutes)));
                 serviceCollection.AddKeyedSingleton("PictureDirectory", design.PictureDirectory ?? string.Empty);
                 serviceCollection.AddKeyedSingleton("TextRefreshInterval", new Common.TimeSpan(TimeSpan.FromMinutes(design.ChangeTextAfterMinutes)));

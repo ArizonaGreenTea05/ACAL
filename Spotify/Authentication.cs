@@ -18,7 +18,7 @@ public static class Authentication
 
         public static async Task<SpotifyClient?> LoginAsync(SpotifyDockerLoginData loginData, string appdataFolderPath, bool preferSavedToken = true, ILogger? logger = null)
         {
-            var tokenFilePath = Path.Combine(appdataFolderPath, "spotify_token.json");
+            var tokenFilePath = Path.Combine(appdataFolderPath, $"spotify_token.{loginData.ClientId}.json");
             logger?.LogDebug("Loading Spotify token from {tokenFilePath}", tokenFilePath);
             var token = !preferSavedToken ? loginData.AuthToken : await LoadTokenAsync(tokenFilePath, logger) ?? loginData.AuthToken;
             if (token is null)
