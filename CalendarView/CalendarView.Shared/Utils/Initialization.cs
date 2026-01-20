@@ -19,12 +19,21 @@ namespace CalendarView.Shared.Utils
     {
         public static void LoadAppsettings(out Calendars calendars, out Design design, out LoggingConfig loggingConfig, out SpotifyServiceLoginData spotifyLoginData, out AuthenticationConfig authenticationConfig, out EditorConfig editorConfig)
         {
+            var appsettingsPaths = new[] { "../config/appsettings.json", "appsettings.json" };
+            var path = appsettingsPaths.FirstOrDefault(File.Exists) ?? throw new FileNotFoundException("appsettings not found");
+            using var appsettingsStream = File.OpenRead(path);
             var appsettingsBuilder = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonStream(GetAppsettingsStream(["../config/appsettings.json", "appsettings.json"]))
-                .AddEnvironmentVariables("ACAL")
-                .AddJsonFile("appsettings.Development.json", true)
-                .AddEnvironmentVariables("ACAL_dev");
+                .AddJsonStream(appsettingsStream)
+                .AddEnvironmentVariables("ACAL");
+
+            var environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")
+                                  ?? Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+            if (string.Equals(environmentName, "Development", StringComparison.OrdinalIgnoreCase))
+            {
+                appsettingsBuilder.AddJsonFile("appsettings.Development.json", optional: true);
+            }
+
             var appsettings = appsettingsBuilder.Build();
             calendars = new Calendars();
             appsettings.GetSection(nameof(Calendars)).Bind(calendars);
@@ -44,13 +53,6 @@ namespace CalendarView.Shared.Utils
 
             editorConfig = new EditorConfig();
             appsettings.GetSection(nameof(EditorConfig)).Bind(editorConfig);
-        }
-
-        private static FileStream GetAppsettingsStream(string[] appsettingsPaths)
-        {
-            var path = appsettingsPaths.FirstOrDefault(File.Exists) ?? throw new FileNotFoundException("appsettings not found");
-            var appsettingsStream = File.OpenRead(path);
-            return appsettingsStream;
         }
 
         extension(IServiceCollection serviceCollection)
