@@ -22,7 +22,9 @@ namespace CalendarView.Shared.Utils
             var appsettingsBuilder = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonStream(GetAppsettingsStream(["../config/appsettings.json", "appsettings.json"]))
-                .AddJsonFile("appsettings.Development.json", true);
+                .AddEnvironmentVariables("ACAL")
+                .AddJsonFile("appsettings.Development.json", true)
+                .AddEnvironmentVariables("ACAL_dev");
             var appsettings = appsettingsBuilder.Build();
             calendars = new Calendars();
             appsettings.GetSection(nameof(Calendars)).Bind(calendars);
