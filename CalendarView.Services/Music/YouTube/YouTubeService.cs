@@ -64,13 +64,27 @@ public class YouTubeService : IMusicService
 
     private async void LoginRefreshTimer_Elapsed(object? sender, ElapsedEventArgs e)
     {
-        if (await Login()) return;
-        _logger.LogError("Login refresh failed");
+        try
+        {
+            if (await Login()) return;
+            _logger.LogError("Login refresh failed - authentication unsuccessful");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError("Exception during login refresh: {ex}", ex.Message);
+        }
     }
 
     private async void Timer_Elapsed(object? sender, ElapsedEventArgs e)
     {
-        await RefreshData();
+        try
+        {
+            await RefreshData();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError("Exception during data refresh: {ex}", ex.Message);
+        }
     }
 
     private async Task RefreshData()
@@ -259,7 +273,7 @@ public class YouTubeService : IMusicService
             if (_playbackStartTime.HasValue && CurrentTrack != null)
             {
                 var elapsedTime = DateTime.UtcNow - _playbackStartTime.Value;
-                _lastKnownProgress = CurrentTrack.Progress + elapsedTime;
+                _lastKnownProgress = _lastKnownProgress + elapsedTime;
             }
             _playbackStartTime = null;
             
@@ -325,7 +339,7 @@ public class YouTubeService : IMusicService
             _logger.LogDebug("Previous command executed");
             
             // In a real implementation, this would trigger the previous video
-            // For now, reset the current track to beginning
+            // For now, reset the current track to beginning without auto-starting playback
             if (CurrentTrack != null)
             {
                 var resetTrack = new Track(CurrentTrack.Name)
@@ -337,7 +351,7 @@ public class YouTubeService : IMusicService
                 };
                 CurrentTrack = resetTrack;
                 _lastKnownProgress = TimeSpan.Zero;
-                _playbackStartTime = DateTime.UtcNow;
+                _playbackStartTime = null;
                 
                 SongChanged?.Invoke(this, EventArgs.Empty);
             }
