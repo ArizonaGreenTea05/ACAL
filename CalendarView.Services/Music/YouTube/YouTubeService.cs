@@ -20,7 +20,7 @@ public class YouTubeService : IMusicService
     private readonly Timer _timer = new(TimeSpan.FromSeconds(5));
     private readonly Timer _loginRefreshTimer = new(TimeSpan.FromMinutes(30));
 
-    private YouTubeService? _youtubeClient = null;
+    private bool _isLoggedIn = false;
     private readonly string _appdataFolderPath;
     private readonly ILogger _logger;
 
@@ -33,7 +33,7 @@ public class YouTubeService : IMusicService
 
     public Track? CurrentTrack { get; private set; } = null;
 
-    public bool IsRunning => _youtubeClient is not null;
+    public bool IsRunning => _isLoggedIn;
 
     public IMusicServiceLoginData? LoginData
     {
@@ -79,9 +79,9 @@ public class YouTubeService : IMusicService
     private async Task RefreshData()
     {
         _logger.LogDebug("Fetching YouTube data");
-        if (_youtubeClient is null)
+        if (!_isLoggedIn)
         {
-            _logger.LogError($"{nameof(_youtubeClient)} is null");
+            _logger.LogError("Service is not logged in");
             return;
         }
 
@@ -142,7 +142,7 @@ public class YouTubeService : IMusicService
         Image? cover = null;
         if (!string.IsNullOrEmpty(thumbnailUrl))
         {
-            // Create a Spotify Image object for compatibility with Track model
+            // Create an Image object for compatibility with Track model
             cover = new Image { Url = thumbnailUrl };
         }
 
@@ -186,8 +186,8 @@ public class YouTubeService : IMusicService
             // 2. User consent flow
             // 3. Token storage and refresh
             
-            // For now, mark the service as "logged in" to allow basic functionality
-            _youtubeClient = this;
+            // For now, mark the service as logged in to allow basic functionality
+            _isLoggedIn = true;
             _logger.LogDebug("YouTube service login successful");
             return true;
         }
@@ -203,7 +203,7 @@ public class YouTubeService : IMusicService
         _logger.LogDebug("Stopping YouTube service");
         _timer.Stop();
         _loginRefreshTimer.Stop();
-        _youtubeClient = null;
+        _isLoggedIn = false;
         _currentVideoId = null;
         _playbackStartTime = null;
         CurrentTrack = null;
