@@ -3,9 +3,6 @@ using CalendarView.Services.Music.Models;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Timers;
-using Google.Apis.YouTube.v3;
-using Google.Apis.Services;
-using Google.Apis.Auth.OAuth2;
 using SpotifyAPI.Web;
 using Timer = System.Timers.Timer;
 
@@ -107,7 +104,7 @@ public class YouTubeService : IMusicService
     {
         if (_playbackStartTime.HasValue && CurrentTrack != null)
         {
-            var elapsedTime = DateTime.Now - _playbackStartTime.Value;
+            var elapsedTime = DateTime.UtcNow - _playbackStartTime.Value;
             var newProgress = _lastKnownProgress + elapsedTime;
             
             if (newProgress >= CurrentTrack.Duration)
@@ -226,7 +223,7 @@ public class YouTubeService : IMusicService
             _logger.LogDebug("Play command executed");
             
             // Mark playback start time for progress tracking
-            _playbackStartTime = DateTime.Now;
+            _playbackStartTime = DateTime.UtcNow;
             
             var newPlayState = Enums.PlayState.Playing;
             if (newPlayState != PlayState)
@@ -261,7 +258,7 @@ public class YouTubeService : IMusicService
             // Update last known progress when pausing
             if (_playbackStartTime.HasValue && CurrentTrack != null)
             {
-                var elapsedTime = DateTime.Now - _playbackStartTime.Value;
+                var elapsedTime = DateTime.UtcNow - _playbackStartTime.Value;
                 _lastKnownProgress = CurrentTrack.Progress + elapsedTime;
             }
             _playbackStartTime = null;
@@ -340,7 +337,7 @@ public class YouTubeService : IMusicService
                 };
                 CurrentTrack = resetTrack;
                 _lastKnownProgress = TimeSpan.Zero;
-                _playbackStartTime = DateTime.Now;
+                _playbackStartTime = DateTime.UtcNow;
                 
                 SongChanged?.Invoke(this, EventArgs.Empty);
             }
