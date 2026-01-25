@@ -27,29 +27,22 @@ public class CalendarService(HttpClient httpClient, ILogger<CalendarService> log
                 {
                     var filePath = uri.LocalPath;
                     
-                    // Security check: Detect path traversal attempts
-                    if (filePath.Contains("..") || filePath.Contains("~"))
-                    {
-                        logger.LogError("Potential path traversal detected in: {path}", filePath);
-                        throw new UnauthorizedAccessException($"Potential path traversal detected in file path: {filePath}");
-                    }
-                    
-                    // Normalize the path to prevent path traversal attacks
+                    // Normalize the path to resolve any relative path components
                     var normalizedPath = Path.GetFullPath(filePath);
                     
-                    // Additional security check: Verify the normalized path doesn't contain traversal sequences
-                    // This catches cases where GetFullPath might resolve to a path outside the intended scope
-                    if (normalizedPath.Contains(".."))
-                    {
-                        logger.LogError("Normalized path contains traversal sequences: {path}", normalizedPath);
-                        throw new UnauthorizedAccessException($"Invalid file path: {normalizedPath}");
-                    }
-                    
-                    // Security check: Ensure the file exists and is a regular file
+                    // Security check: Ensure the file exists
                     if (!File.Exists(normalizedPath))
                     {
                         logger.LogError("Calendar file not found: {path}", normalizedPath);
                         throw new FileNotFoundException($"Calendar file not found: {normalizedPath}");
+                    }
+                    
+                    // Security check: Ensure it's a regular file, not a directory
+                    var attributes = File.GetAttributes(normalizedPath);
+                    if ((attributes & FileAttributes.Directory) == FileAttributes.Directory)
+                    {
+                        logger.LogError("Path is a directory, not a file: {path}", normalizedPath);
+                        throw new UnauthorizedAccessException($"Path is a directory, not a file: {normalizedPath}");
                     }
                     
                     icsData = await File.ReadAllTextAsync(normalizedPath);
