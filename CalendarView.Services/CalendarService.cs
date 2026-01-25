@@ -6,6 +6,14 @@ namespace CalendarView.Services;
 
 public class CalendarService(HttpClient httpClient, ILogger<CalendarService> logger)
 {
+    /// <summary>
+    /// Loads calendar events from an ICS source.
+    /// </summary>
+    /// <param name="icsUrl">The URL or file URI to load the ICS calendar from. 
+    /// Supports HTTP/HTTPS URLs (e.g., "https://example.com/calendar.ics") 
+    /// and file URIs (e.g., "file:///path/to/calendar.ics").</param>
+    /// <param name="maxTries">The maximum number of attempts to load the calendar (default: 1).</param>
+    /// <returns>A list of calendar events, or null if loading fails.</returns>
     public async Task<List<CalendarEvent>?> LoadEventsFromIcsAsync(string icsUrl, int maxTries = 1)
     {
         for (var i = 0; i < maxTries; i++)
@@ -13,9 +21,34 @@ public class CalendarService(HttpClient httpClient, ILogger<CalendarService> log
             try
             {
                 var uri = new Uri(icsUrl);
-                var icsData = uri.IsFile ? await File.ReadAllTextAsync(icsUrl) : await httpClient.GetStringAsync(icsUrl);
+                
+                string icsData;
+                if (uri.IsFile)
+                {
+                    var filePath = uri.LocalPath;
+                    
+                    // Normalize the path to resolve any relative path components
+                    var normalizedPath = Path.GetFullPath(filePath);
+                    
+                    // Security check: Ensure it's a regular file, not a directory
+                    // This will throw FileNotFoundException if the file doesn't exist
+                    var attributes = File.GetAttributes(normalizedPath);
+                    if ((attributes & FileAttributes.Directory) == FileAttributes.Directory)
+                    {
+                        logger.LogError("Path is a directory, not a file: {path}", normalizedPath);
+                        throw new ArgumentException($"Path is a directory, not a file: {normalizedPath}", nameof(icsUrl));
+                    }
+                    
+                    icsData = await File.ReadAllTextAsync(normalizedPath);
+                    logger.LogInformation("Loaded calendar from local file: {path}", normalizedPath);
+                }
+                else
+                {
+                    icsData = await httpClient.GetStringAsync(icsUrl);
+                    logger.LogInformation("Loaded calendar from URL: {url}", icsUrl);
+                }
+                
                 var calendar = Calendar.Load(icsData);
-                logger.LogInformation("Loaded calendar from {url}", icsUrl);
                 return calendar?.Events.ToList() ?? [];
             }
             catch (Exception ex)
