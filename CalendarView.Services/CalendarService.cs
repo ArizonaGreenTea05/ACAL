@@ -12,7 +12,8 @@ public class CalendarService(HttpClient httpClient, ILogger<CalendarService> log
         {
             try
             {
-                var icsData = await httpClient.GetStringAsync(icsUrl);
+                var uri = new Uri(icsUrl);
+                var icsData = uri.IsFile ? await File.ReadAllTextAsync(icsUrl) : await httpClient.GetStringAsync(icsUrl);
                 var calendar = Calendar.Load(icsData);
                 logger.LogInformation("Loaded calendar from {url}", icsUrl);
                 return calendar?.Events.ToList() ?? [];
