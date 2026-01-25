@@ -41,7 +41,7 @@ public class CalendarService(HttpClient httpClient, ILogger<CalendarService> log
                     if ((attributes & FileAttributes.Directory) == FileAttributes.Directory)
                     {
                         logger.LogError("Path is a directory, not a file: {path}", normalizedPath);
-                        throw new ArgumentException($"Path is a directory, not a file: {normalizedPath}", nameof(icsUrl));
+                        return null;
                     }
                     
                     icsData = await File.ReadAllTextAsync(normalizedPath);
