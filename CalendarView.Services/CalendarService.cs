@@ -27,8 +27,23 @@ public class CalendarService(HttpClient httpClient, ILogger<CalendarService> log
                 {
                     var filePath = uri.LocalPath;
                     
+                    // Security check: Detect path traversal attempts
+                    if (filePath.Contains("..") || filePath.Contains("~"))
+                    {
+                        logger.LogError("Potential path traversal detected in: {path}", filePath);
+                        throw new UnauthorizedAccessException($"Potential path traversal detected in file path: {filePath}");
+                    }
+                    
                     // Normalize the path to prevent path traversal attacks
                     var normalizedPath = Path.GetFullPath(filePath);
+                    
+                    // Additional security check: Verify the normalized path doesn't contain traversal sequences
+                    // This catches cases where GetFullPath might resolve to a path outside the intended scope
+                    if (normalizedPath.Contains(".."))
+                    {
+                        logger.LogError("Normalized path contains traversal sequences: {path}", normalizedPath);
+                        throw new UnauthorizedAccessException($"Invalid file path: {normalizedPath}");
+                    }
                     
                     // Security check: Ensure the file exists and is a regular file
                     if (!File.Exists(normalizedPath))
