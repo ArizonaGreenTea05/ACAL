@@ -36,7 +36,7 @@ public class CalendarService(HttpClient httpClient, ILogger<CalendarService> log
                     var normalizedPath = Path.GetFullPath(filePath);
                     
                     // Security check: Ensure it's a regular file, not a directory
-                    // This will throw FileNotFoundException if the file doesn't exist
+                    // This may throw FileNotFoundException if the file doesn't exist or other IO-related exceptions
                     var attributes = File.GetAttributes(normalizedPath);
                     if ((attributes & FileAttributes.Directory) == FileAttributes.Directory)
                     {
