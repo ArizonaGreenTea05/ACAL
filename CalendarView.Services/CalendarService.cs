@@ -30,19 +30,13 @@ public class CalendarService(HttpClient httpClient, ILogger<CalendarService> log
                     // Normalize the path to resolve any relative path components
                     var normalizedPath = Path.GetFullPath(filePath);
                     
-                    // Security check: Ensure the file exists
-                    if (!File.Exists(normalizedPath))
-                    {
-                        logger.LogError("Calendar file not found: {path}", normalizedPath);
-                        throw new FileNotFoundException($"Calendar file not found: {normalizedPath}");
-                    }
-                    
                     // Security check: Ensure it's a regular file, not a directory
+                    // This will throw FileNotFoundException if the file doesn't exist
                     var attributes = File.GetAttributes(normalizedPath);
                     if ((attributes & FileAttributes.Directory) == FileAttributes.Directory)
                     {
                         logger.LogError("Path is a directory, not a file: {path}", normalizedPath);
-                        throw new UnauthorizedAccessException($"Path is a directory, not a file: {normalizedPath}");
+                        throw new ArgumentException($"Path is a directory, not a file: {normalizedPath}", nameof(icsUrl));
                     }
                     
                     icsData = await File.ReadAllTextAsync(normalizedPath);
