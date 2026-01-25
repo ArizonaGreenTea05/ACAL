@@ -16,12 +16,27 @@ public class CalendarService(HttpClient httpClient, ILogger<CalendarService> log
     /// <returns>A list of calendar events, or null if loading fails.</returns>
     public async Task<List<CalendarEvent>?> LoadEventsFromIcsAsync(string icsUrl, int maxTries = 1)
     {
+        Uri uri;
+
+        try
+        {
+            uri = new Uri(icsUrl);
+        }
+        catch (ArgumentNullException ex)
+        {
+            logger.LogError("Invalid URL: {message}", ex.Message);
+            return null;
+        }
+        catch (UriFormatException ex)
+        {
+            logger.LogError("Invalid URL: {message}", ex.Message);
+            return null;
+        }
+
         for (var i = 0; i < maxTries; i++)
         {
             try
             {
-                var uri = new Uri(icsUrl);
-                
                 string icsData;
                 if (uri.IsFile)
                 {
