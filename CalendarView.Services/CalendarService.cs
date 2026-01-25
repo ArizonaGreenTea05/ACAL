@@ -26,8 +26,13 @@ public class CalendarService(HttpClient httpClient, ILogger<CalendarService> log
                 if (uri.IsFile)
                 {
                     var filePath = uri.LocalPath;
-                    
-                    // Normalize the path to resolve any relative path components
+
+                    // Validate and normalize the path to a fully qualified local file path
+                    if (!Path.IsPathRooted(filePath) || uri.IsUnc || filePath.StartsWith(@"\\", StringComparison.Ordinal))
+                    {
+                        logger.LogError("Invalid or unsupported file path in URI: {path}", filePath);
+                        throw new ArgumentException($"Invalid or unsupported file path in URI: {filePath}", nameof(icsUrl));
+                    }
                     var normalizedPath = Path.GetFullPath(filePath);
                     
                     // Security check: Ensure it's a regular file, not a directory
