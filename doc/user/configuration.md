@@ -235,6 +235,8 @@ Configure calendar sources and refresh behavior.
 {
   "Calendars": {
     "RefreshAfterMinutes": 60,
+    "DaysAhead": 90,
+    "TimeoutInSeconds": 60,
     "Definitions": {}
   }
 }
@@ -242,6 +244,8 @@ Configure calendar sources and refresh behavior.
 
 **Options:**
 - `RefreshAfterMinutes` - How often to refresh calendar data (in minutes)
+- `DaysAhead` - Number of days to look ahead for recurring events (default: 90). This limits how many future occurrences are calculated for recurring events like birthdays, improving performance.
+- `TimeoutInSeconds` - Maximum time in seconds to wait for all calendars to load before timing out (default: 60, minimum: 1)
 
 ### Adding Calendar Sources
 
