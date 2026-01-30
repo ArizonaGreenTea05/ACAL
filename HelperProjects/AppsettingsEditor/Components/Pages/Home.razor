@@ -212,13 +212,13 @@
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label for="refreshAfterMinutes" class="form-label">Refresh After (minutes)</label>
-                                    <InputNumber id="refreshAfterMinutes" class="form-control" @bind-Value="currentSettings.Calendars.RefreshAfterMinutes" />
-                                    <small class="form-text text-muted">How often to refresh calendar data</small>
+                                    <InputNumber id="refreshAfterMinutes" class="form-control" @bind-Value="currentSettings.Calendars.RefreshAfterMinutes" ParsingErrorMessage="Must be a positive number" />
+                                    <small class="form-text text-muted">How often to refresh calendar data (minimum: 1)</small>
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label for="daysAhead" class="form-label">Days Ahead</label>
-                                    <InputNumber id="daysAhead" class="form-control" @bind-Value="currentSettings.Calendars.DaysAhead" />
-                                    <small class="form-text text-muted">Number of days to look ahead for recurring events (default: 90)</small>
+                                    <InputNumber id="daysAhead" class="form-control" @bind-Value="currentSettings.Calendars.DaysAhead" ParsingErrorMessage="Must be a positive number" />
+                                    <small class="form-text text-muted">Number of days to look ahead for recurring events (default: 90, minimum: 1)</small>
                                 </div>
                             </div>
                             

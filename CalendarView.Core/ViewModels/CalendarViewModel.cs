@@ -89,20 +89,24 @@ public partial class CalendarViewModel(CalendarService calendarService, Calendar
                 // Calculate occurrences from today up to DaysAhead in the future
                 // Using TakeWhile to prevent generating infinite occurrences for unbounded recurrence rules
                 var startDate = new CalDateTime(DateTime.Now.Date.ToUniversalTime(), false);
-                var endDate = DateTime.Now.Date.AddDays(sourceCalendars.DaysAhead).ToUniversalTime();
+                var daysAhead = Math.Max(1, sourceCalendars.DaysAhead); // Ensure at least 1 day ahead
+                var endDate = DateTime.Now.Date.AddDays(daysAhead).ToUniversalTime();
                 var occurrences = item.GetOccurrences(startDate, null)
-                    .TakeWhile(o => o.Period.StartTime.Value <= endDate)
+                    .TakeWhile(o => o.Period.StartTime?.Value <= endDate)
+                    .Where(o => o.Period.StartTime?.Value != null) // Filter out null start times
                     .ToList();
                 
-                if (occurrences.Count > 1)
+                if (occurrences.Count > 0)
                 {
+                    // Add all occurrences within the time window
                     foreach (var occurrence in occurrences)
                     {
-                        AddEvent(item.Summary ?? string.Empty, occurrence.Period.StartTime.Value, occurrence.Period.EffectiveEndTime?.Value ?? occurrence.Period.StartTime.Value.AddHours(1), item.IsAllDay, item.Location, currentCalendar);
+                        AddEvent(item.Summary ?? string.Empty, occurrence.Period.StartTime!.Value, occurrence.Period.EffectiveEndTime?.Value ?? occurrence.Period.StartTime.Value.AddHours(1), item.IsAllDay, item.Location, currentCalendar);
                     }
                 }
                 else if ((item.End is not null && item.End.Value.Date >= DateTime.Now.Date) || item.Start.Value.Date.AddDays(1) >= DateTime.Now.Date)
                 {
+                    // For non-recurring events or events without occurrences in the window, add the original event if it's upcoming
                     AddEvent(item.Summary ?? string.Empty, item.Start.Value, item.End?.Value ?? item.Start.Value.Date.AddDays(1), item.IsAllDay, item.Location, currentCalendar);
                 }
             }
