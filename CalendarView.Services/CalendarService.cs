@@ -14,7 +14,7 @@ public class CalendarService(HttpClient httpClient, ILogger<CalendarService> log
     /// and file URIs (e.g., "file:///path/to/calendar.ics").</param>
     /// <param name="maxTries">The maximum number of attempts to load the calendar (default: 1).</param>
     /// <returns>A list of calendar events, or null if loading fails.</returns>
-    public async Task<List<CalendarEvent>?> LoadEventsFromIcsAsync(string icsSource, int maxTries = 1)
+    public async Task<List<CalendarEvent>?> LoadEventsFromIcsAsync(string icsSource, CancellationToken cancellationToken, int maxTries = 1)
     {
         if (maxTries < 1)
         {
@@ -41,6 +41,7 @@ public class CalendarService(HttpClient httpClient, ILogger<CalendarService> log
 
         for (var i = 0; i < maxTries; i++)
         {
+            if (cancellationToken.IsCancellationRequested) return null;
             try
             {
                 string icsData;
@@ -86,7 +87,7 @@ public class CalendarService(HttpClient httpClient, ILogger<CalendarService> log
                     {
                         // Read the file content. Uses UTF-8 encoding with BOM detection by default,
                         // which is consistent with HttpClient.GetStringAsync behavior for HTTP sources.
-                        icsData = await File.ReadAllTextAsync(normalizedPath);
+                        icsData = await File.ReadAllTextAsync(normalizedPath, cancellationToken);
                         logger.LogInformation("Loaded calendar from local file: {path}", normalizedPath);
                     }
                     catch (FileNotFoundException ex)
@@ -108,7 +109,7 @@ public class CalendarService(HttpClient httpClient, ILogger<CalendarService> log
                 }
                 else
                 {
-                    icsData = await httpClient.GetStringAsync(icsSource);
+                    icsData = await httpClient.GetStringAsync(icsSource, cancellationToken);
                     logger.LogInformation("Loaded calendar from URL: {url}", icsSource);
                 }
                 

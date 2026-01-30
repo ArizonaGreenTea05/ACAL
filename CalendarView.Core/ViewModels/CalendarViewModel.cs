@@ -42,6 +42,7 @@ public partial class CalendarViewModel(CalendarService calendarService, Calendar
 
     private async Task LoadCalendars()
     {
+        var timeoutInSeconds = Math.Max(1, sourceCalendars.TimeoutInSeconds);
         logger.LogInformation("Started calendar loading");
         if (IsLoading)
         {
@@ -54,64 +55,84 @@ public partial class CalendarViewModel(CalendarService calendarService, Calendar
         Calendars.Clear();
         logger.LogDebug("Cleared calendars and events");
 
-        foreach (var calendar in sourceCalendars.Definitions)
+        var cancelTokenSource = new CancellationTokenSource();
+
+        var calendarLoadingTask = Task.WhenAll(sourceCalendars.Definitions.Select(calendar => AddCalendar(calendar, cancelTokenSource.Token)));
+
+        var timeoutTask = Task.Delay(TimeSpan.FromSeconds(timeoutInSeconds), CancellationToken.None);
+
+        var finishedTask = await Task.WhenAny(calendarLoadingTask, timeoutTask);
+        if (finishedTask == timeoutTask)
         {
-            var currentCalendar = new Calendar
-            {
-                Color = calendar.Value.Color is null ? Color.Gray : ColorTranslator.FromHtml(calendar.Value.Color),
-                Name = calendar.Value.CustomName,
-                ShowLocation = calendar.Value.ShowLocation
-            };
-
-            var fodCal = Calendars.FirstOrDefault(c => c == currentCalendar);
-            if (fodCal is null) Calendars.Add(currentCalendar);
-            else currentCalendar = fodCal;
-            logger.LogDebug("Added calendar: {json}", JsonConvert.SerializeObject(currentCalendar));
-
-            var events = await calendarService.LoadEventsFromIcsAsync(calendar.Key, 4);
-
-            if (events is null)
-            {
-                var message = $"Failed to load events for calendar: {calendar.Value.CustomName ?? calendar.Key}";
-                logger.LogError(message);
-                Notifications.Add(new Notification(Enums.NotificationKind.Error, message));
-                continue;
-            }
-            
-            foreach (var item in events)
-            {
-                if (item.Start is null)
-                {
-                    logger.LogWarning("Start of event is null: {name}", item.Summary);
-                    continue;
-                }
-                
-                var startDate = new CalDateTime(DateTime.Now.Date.ToUniversalTime(), false);
-                var daysAhead = Math.Max(1, sourceCalendars.DaysAhead);
-                var endDate = DateTime.Now.Date.AddDays(daysAhead).ToUniversalTime();
-                var occurrences = item.GetOccurrences(startDate, null)
-                    .TakeWhile(o => o.Period.StartTime?.Value <= endDate)
-                    .Where(o => o.Period.StartTime?.Value is not null)
-                    .ToList();
-                
-                if (occurrences.Count > 0)
-                {
-                    // Add all occurrences within the time window
-                    foreach (var occurrence in occurrences)
-                    {
-                        AddEvent(item.Summary ?? string.Empty, occurrence.Period.StartTime.Value, occurrence.Period.EffectiveEndTime?.Value ?? occurrence.Period.StartTime.Value.AddHours(1), item.IsAllDay, item.Location, currentCalendar);
-                    }
-                }
-                else if ((item.End?.Value.Date ?? item.Start.Value.Date) >= DateTime.Now.Date)
-                {
-                    AddEvent(item.Summary ?? string.Empty, item.Start.Value, item.End?.Value, item.IsAllDay, item.Location, currentCalendar);
-                }
-            }
+            cancelTokenSource.Cancel();
+            Notifications.Add(new Notification(Enums.NotificationKind.Error, $"Calendar loading took longer than {timeoutInSeconds} seconds. Task has been aborted."));
         }
 
         IsLoading = false;
         RefreshedCalendars?.Invoke(this, EventArgs.Empty);
         logger.LogInformation("Finished calendar loading");
+    }
+
+    private async Task<bool> AddCalendar(KeyValuePair<string, CalendarCustomization> calendar, CancellationToken cancellationToken)
+    {
+        var currentCalendar = new Calendar
+        {
+            Color = calendar.Value.Color is null ? Color.Gray : ColorTranslator.FromHtml(calendar.Value.Color),
+            Name = calendar.Value.CustomName,
+            ShowLocation = calendar.Value.ShowLocation
+        };
+
+        var fodCal = Calendars.FirstOrDefault(c => c == currentCalendar);
+        if (fodCal is null) Calendars.Add(currentCalendar);
+        else currentCalendar = fodCal;
+        logger.LogDebug("Added calendar: {json}", JsonConvert.SerializeObject(currentCalendar));
+
+        if (cancellationToken.IsCancellationRequested) return false;
+
+        var events = await calendarService.LoadEventsFromIcsAsync(calendar.Key, cancellationToken, 4);
+
+        if (events is null)
+        {
+            var message = $"Failed to load events for calendar: {calendar.Value.CustomName ?? calendar.Key}";
+            logger.LogError(message);
+            Notifications.Add(new Notification(Enums.NotificationKind.Error, message));
+            return false;
+        }
+
+        foreach (var item in events)
+        {
+            if (cancellationToken.IsCancellationRequested) return false;
+            if (item.Start is null)
+            {
+                logger.LogWarning("Start of event is null: {name}", item.Summary);
+                continue;
+            }
+
+            var startDate = new CalDateTime(DateTime.Now.Date.ToUniversalTime(), false);
+            var daysAhead = Math.Max(1, sourceCalendars.DaysAhead);
+            var endDate = DateTime.Now.Date.AddDays(daysAhead).ToUniversalTime();
+            var endCalDate = new CalDateTime(endDate, false);
+            var occurrences = item.GetOccurrences(startDate)
+                .TakeWhile(o => o.Period.StartTime?.Value <= endDate)
+                .Where(o => o.Period.StartTime?.Value is not null)
+                .ToList();
+
+
+            if (cancellationToken.IsCancellationRequested) return false; // no event should be added after cancellation
+            if (occurrences.Count > 0)
+            {
+                foreach (var occurrence in occurrences)
+                {
+                    AddEvent(item.Summary ?? string.Empty, occurrence.Period.StartTime.Value, occurrence.Period.EffectiveEndTime?.Value, item.IsAllDay, item.Location, currentCalendar);
+                }
+            }
+            else if ((item.End?.Value.Date ?? item.Start.Value.Date) >= DateTime.Now.Date)
+            {
+                AddEvent(item.Summary ?? string.Empty, item.Start.Value, item.End?.Value, item.IsAllDay, item.Location, currentCalendar);
+            }
+        }
+
+        return true;
     }
 
     private void AddEvent(string eventName, DateTime start, DateTime? end, bool isAllDay, string? eventLocation, Calendar currentCalendar)
