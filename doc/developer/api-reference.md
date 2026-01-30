@@ -390,6 +390,7 @@ public class Calendars
 {
     public int RefreshAfterMinutes { get; set; }
     public int DaysAhead { get; set; }
+    public int TimeoutInSeconds { get; set; }
     public Dictionary<string, CalendarCustomization> Definitions { get; set; }
 }
 ```
@@ -397,6 +398,7 @@ public class Calendars
 **Properties:**
 - `RefreshAfterMinutes` - How often to refresh calendar data (in minutes)
 - `DaysAhead` - Number of days to look ahead for recurring events (default: 90)
+- `TimeoutInSeconds` - Maximum time in seconds to wait for all calendars to load before timing out (default: 60, minimum: 1)
 - `Definitions` - Dictionary of calendar URLs to customization options
 
 ---
