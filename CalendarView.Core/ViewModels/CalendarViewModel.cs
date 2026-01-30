@@ -55,7 +55,7 @@ public partial class CalendarViewModel(CalendarService calendarService, Calendar
         Calendars.Clear();
         logger.LogDebug("Cleared calendars and events");
 
-        var cancelTokenSource = new CancellationTokenSource();
+        using var cancelTokenSource = new CancellationTokenSource();
 
         var calendarLoadingTask = Task.WhenAll(sourceCalendars.Definitions.Select(calendar => AddCalendar(calendar, cancelTokenSource.Token)));
 
