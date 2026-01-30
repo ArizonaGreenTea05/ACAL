@@ -82,12 +82,21 @@ public partial class CalendarViewModel(CalendarService calendarService, Calendar
             {
                 if (item.Start is null)
                 {
-                    logger.LogWarning("Start of event is null: {name}", item.Name);
+                    logger.LogWarning("Start of event is null: {name}", item.Summary);
                     continue;
                 }
-                var occurrences = item.GetOccurrences(new CalDateTime(DateTime.Now.Date.ToUniversalTime(), false)).ToList();
-                if (occurrences.Count > 1)
+                
+                var startDate = new CalDateTime(DateTime.Now.Date.ToUniversalTime(), false);
+                var daysAhead = Math.Max(1, sourceCalendars.DaysAhead);
+                var endDate = DateTime.Now.Date.AddDays(daysAhead).ToUniversalTime();
+                var occurrences = item.GetOccurrences(startDate, null)
+                    .TakeWhile(o => o.Period.StartTime?.Value <= endDate)
+                    .Where(o => o.Period.StartTime?.Value is not null)
+                    .ToList();
+                
+                if (occurrences.Count > 0)
                 {
+                    // Add all occurrences within the time window
                     foreach (var occurrence in occurrences)
                     {
                         AddEvent(item.Summary ?? string.Empty, occurrence.Period.StartTime.Value, occurrence.Period.EffectiveEndTime?.Value ?? occurrence.Period.StartTime.Value.AddHours(1), item.IsAllDay, item.Location, currentCalendar);
