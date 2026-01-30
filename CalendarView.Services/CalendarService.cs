@@ -6,7 +6,7 @@ namespace CalendarView.Services;
 
 public class CalendarService(HttpClient httpClient, ILogger<CalendarService> logger)
 {
-    public async Task<List<CalendarEvent>?> LoadEventsFromIcsAsync(string icsUrl, int maxTries = 1)
+    public async Task<List<CalendarEvent>?> LoadEventsFromIcsAsync(string icsUrl, CancellationToken cancellationToken, int maxTries = 1)
     {
         for (var i = 0; i < maxTries; i++)
         {
