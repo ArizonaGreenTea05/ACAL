@@ -389,12 +389,14 @@ Collection of calendar configurations.
 public class Calendars
 {
     public int RefreshAfterMinutes { get; set; }
+    public int DaysAhead { get; set; }
     public Dictionary<string, CalendarCustomization> Definitions { get; set; }
 }
 ```
 
 **Properties:**
-- `RefreshAfterMinutes` - How often to refresh calendar data
+- `RefreshAfterMinutes` - How often to refresh calendar data (in minutes)
+- `DaysAhead` - Number of days to look ahead for recurring events (default: 90)
 - `Definitions` - Dictionary of calendar URLs to customization options
 
 ---

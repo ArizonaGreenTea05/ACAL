@@ -85,7 +85,15 @@ public partial class CalendarViewModel(CalendarService calendarService, Calendar
                     logger.LogWarning("Start of event is null: {name}", item.Name);
                     continue;
                 }
-                var occurrences = item.GetOccurrences(new CalDateTime(DateTime.Now.Date.ToUniversalTime(), false)).ToList();
+                
+                // Calculate occurrences from today up to DaysAhead in the future
+                // Using TakeWhile to prevent generating infinite occurrences for unbounded recurrence rules
+                var startDate = new CalDateTime(DateTime.Now.Date.ToUniversalTime(), false);
+                var endDate = DateTime.Now.Date.AddDays(sourceCalendars.DaysAhead).ToUniversalTime();
+                var occurrences = item.GetOccurrences(startDate, null)
+                    .TakeWhile(o => o.Period.StartTime.Value <= endDate)
+                    .ToList();
+                
                 if (occurrences.Count > 1)
                 {
                     foreach (var occurrence in occurrences)
