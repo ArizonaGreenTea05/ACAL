@@ -82,18 +82,16 @@ public partial class CalendarViewModel(CalendarService calendarService, Calendar
             {
                 if (item.Start is null)
                 {
-                    logger.LogWarning("Start of event is null: {name}", item.Name);
+                    logger.LogWarning("Start of event is null: {name}", item.Summary);
                     continue;
                 }
                 
-                // Calculate occurrences from today up to DaysAhead in the future
-                // Using TakeWhile to prevent generating infinite occurrences for unbounded recurrence rules
                 var startDate = new CalDateTime(DateTime.Now.Date.ToUniversalTime(), false);
-                var daysAhead = Math.Max(1, sourceCalendars.DaysAhead); // Ensure at least 1 day ahead
+                var daysAhead = Math.Max(1, sourceCalendars.DaysAhead);
                 var endDate = DateTime.Now.Date.AddDays(daysAhead).ToUniversalTime();
                 var occurrences = item.GetOccurrences(startDate, null)
                     .TakeWhile(o => o.Period.StartTime?.Value <= endDate)
-                    .Where(o => o.Period.StartTime?.Value != null) // Filter out null start times
+                    .Where(o => o.Period.StartTime?.Value is not null)
                     .ToList();
                 
                 if (occurrences.Count > 0)
