@@ -11,7 +11,7 @@ public static class CommonFunctions
 {
     public static void InitCalendarParams(IEnumerable<CalendarEvent> unorderedEvents, out List<CalendarEvent> events, out DateTime startDay, out DateTime endDay, out DateTime today, out DateTime yesterday, out DateTime tomorrow)
     {
-        events = [.. unorderedEvents.Where(ev => ev is not null).OrderBy(ev => ev.TotalStartTime)];
+        events = [.. unorderedEvents.ToList().Where(ev => ev is not null).OrderBy(ev => ev.TotalStartTime)];
         startDay = DateTime.Now.Date;
         endDay = events.Count <= 0 ? startDay : events.Max(ev => ev.TotalStartTime.Date);
 

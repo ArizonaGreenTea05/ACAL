@@ -12,6 +12,7 @@ public class CalendarService(HttpClient httpClient, ILogger<CalendarService> log
     /// <param name="icsSource">The URL or file URI to load the ICS calendar from. 
     /// Supports HTTP/HTTPS URLs (e.g., "https://example.com/calendar.ics") 
     /// and file URIs (e.g., "file:///path/to/calendar.ics").</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the calendar loading operation.</param>
     /// <param name="maxTries">The maximum number of attempts to load the calendar (default: 1).</param>
     /// <returns>A list of calendar events, or null if loading fails.</returns>
     public async Task<List<CalendarEvent>?> LoadEventsFromIcsAsync(string icsSource, CancellationToken cancellationToken, int maxTries = 1)

@@ -56,16 +56,42 @@ public partial class CalendarViewModel(CalendarService calendarService, Calendar
         logger.LogDebug("Cleared calendars and events");
 
         using var cancelTokenSource = new CancellationTokenSource();
-
         var calendarLoadingTask = Task.WhenAll(sourceCalendars.Definitions.Select(calendar => AddCalendar(calendar, cancelTokenSource.Token)));
 
-        var timeoutTask = Task.Delay(TimeSpan.FromSeconds(timeoutInSeconds), CancellationToken.None);
+        using var timeoutCancelTokenSource = new CancellationTokenSource();
+        var timeoutTask = Task.Delay(TimeSpan.FromSeconds(timeoutInSeconds), timeoutCancelTokenSource.Token);
 
         var finishedTask = await Task.WhenAny(calendarLoadingTask, timeoutTask);
         if (finishedTask == timeoutTask)
         {
             cancelTokenSource.Cancel();
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await calendarLoadingTask;
+                }
+                catch (OperationCanceledException)
+                {
+                    logger.LogInformation("Calendar loading task was cancelled due to timeout");
+                }
+                catch (Exception ex)
+                { 
+                    logger.LogError(ex, "An error occurred while loading calendars");
+                }
+            });
             Notifications.Add(new Notification(Enums.NotificationKind.Error, $"Calendar loading took longer than {timeoutInSeconds} seconds. Task has been aborted."));
+        }
+        else
+        {
+            try
+            {
+                timeoutCancelTokenSource.Cancel();
+                await timeoutTask;
+            }
+            catch (TaskCanceledException)
+            {
+            }
         }
 
         IsLoading = false;
@@ -111,12 +137,10 @@ public partial class CalendarViewModel(CalendarService calendarService, Calendar
             var startDate = new CalDateTime(DateTime.Now.Date.ToUniversalTime(), false);
             var daysAhead = Math.Max(1, sourceCalendars.DaysAhead);
             var endDate = DateTime.Now.Date.AddDays(daysAhead).ToUniversalTime();
-            var endCalDate = new CalDateTime(endDate, false);
             var occurrences = item.GetOccurrences(startDate)
                 .TakeWhile(o => o.Period.StartTime?.Value <= endDate)
                 .Where(o => o.Period.StartTime?.Value is not null)
                 .ToList();
-
 
             if (cancellationToken.IsCancellationRequested) return false; // no event should be added after cancellation
             if (occurrences.Count > 0)
