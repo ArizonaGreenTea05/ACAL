@@ -99,13 +99,12 @@ public partial class CalendarViewModel(CalendarService calendarService, Calendar
                     // Add all occurrences within the time window
                     foreach (var occurrence in occurrences)
                     {
-                        AddEvent(item.Summary ?? string.Empty, occurrence.Period.StartTime!.Value, occurrence.Period.EffectiveEndTime?.Value ?? occurrence.Period.StartTime.Value.AddHours(1), item.IsAllDay, item.Location, currentCalendar);
+                        AddEvent(item.Summary ?? string.Empty, occurrence.Period.StartTime.Value, occurrence.Period.EffectiveEndTime?.Value ?? occurrence.Period.StartTime.Value.AddHours(1), item.IsAllDay, item.Location, currentCalendar);
                     }
                 }
-                else if ((item.End is not null && item.End.Value.Date >= DateTime.Now.Date) || item.Start.Value.Date.AddDays(1) >= DateTime.Now.Date)
+                else if ((item.End?.Value.Date ?? item.Start.Value.Date) >= DateTime.Now.Date)
                 {
-                    // For non-recurring events or events without occurrences in the window, add the original event if it's upcoming
-                    AddEvent(item.Summary ?? string.Empty, item.Start.Value, item.End?.Value ?? item.Start.Value.Date.AddDays(1), item.IsAllDay, item.Location, currentCalendar);
+                    AddEvent(item.Summary ?? string.Empty, item.Start.Value, item.End?.Value, item.IsAllDay, item.Location, currentCalendar);
                 }
             }
         }
@@ -115,14 +114,20 @@ public partial class CalendarViewModel(CalendarService calendarService, Calendar
         logger.LogInformation("Finished calendar loading");
     }
 
-    private void AddEvent(string eventName, DateTime start, DateTime end, bool isAllDay, string? eventLocation, Calendar currentCalendar)
+    private void AddEvent(string eventName, DateTime start, DateTime? end, bool isAllDay, string? eventLocation, Calendar currentCalendar)
     {
+        var fixedEnd = end ?? (isAllDay ? start.Date.AddDays(1) : start.AddHours(1));
         CalendarEvent item = isAllDay
             ? new AllDayCalendarEvent(currentCalendar, eventName, 
                 DateOnly.FromDateTime(start.Date),
-                DateOnly.FromDateTime(end.Date.Subtract(TimeSpan.FromHours(12))), eventLocation)
-            : new DefaultCalendarEvent(currentCalendar, eventName, start, end, eventLocation);
+                DateOnly.FromDateTime(Max(start.Date, fixedEnd.Date.Subtract(TimeSpan.FromHours(12)))), eventLocation)
+            : new DefaultCalendarEvent(currentCalendar, eventName, start, fixedEnd, eventLocation);
         Events.Add(item);
         logger.LogDebug("Added event: {json}", JsonConvert.SerializeObject(item));
+    }
+
+    private static DateTime Max(DateTime left, DateTime right)
+    {
+        return left > right ? left : right;
     }
 }
