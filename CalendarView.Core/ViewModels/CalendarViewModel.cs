@@ -75,13 +75,14 @@ public partial class CalendarViewModel(CalendarService calendarService, Calendar
                 var message = $"Failed to load events for calendar: {calendar.Value.CustomName ?? calendar.Key}";
                 logger.LogError(message);
                 Notifications.Add(new Notification(Enums.NotificationKind.Error, message));
+                continue;
             }
             
-            foreach (var item in events ?? [])
+            foreach (var item in events)
             {
-                if (item.Start is null || item.End is null)
+                if (item.Start is null)
                 {
-                    logger.LogWarning("Start or end of event is null: {json}", JsonConvert.SerializeObject(item));
+                    logger.LogWarning("Start of event is null: {name}", item.Name);
                     continue;
                 }
                 var occurrences = item.GetOccurrences(new CalDateTime(DateTime.Now.Date.ToUniversalTime(), false)).ToList();
@@ -92,9 +93,9 @@ public partial class CalendarViewModel(CalendarService calendarService, Calendar
                         AddEvent(item.Summary ?? string.Empty, occurrence.Period.StartTime.Value, occurrence.Period.EffectiveEndTime?.Value ?? occurrence.Period.StartTime.Value.AddHours(1), item.IsAllDay, item.Location, currentCalendar);
                     }
                 }
-                else if (item.End.Value.Date >= DateTime.Now.Date)
+                else if ((item.End is not null && item.End.Value.Date >= DateTime.Now.Date) || item.Start.Value.Date.AddDays(1) >= DateTime.Now.Date)
                 {
-                    AddEvent(item.Summary ?? string.Empty, item.Start.Value, item.End.Value, item.IsAllDay, item.Location, currentCalendar);
+                    AddEvent(item.Summary ?? string.Empty, item.Start.Value, item.End?.Value ?? item.Start.Value.Date.AddDays(1), item.IsAllDay, item.Location, currentCalendar);
                 }
             }
         }
